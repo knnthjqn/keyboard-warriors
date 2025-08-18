@@ -13,7 +13,8 @@ const intermediateWords = [
     "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT",
     "DANGER", "INTRASIGENT", "STADIUM", "VILLIAN", "CRIMSON",
     "MASSIVE", "INFERNO", "REQUEST", "COMMIT", "INSIGHTS", "WARRIOR",
-    "SUPERCILICIOUS,
+    "SUPERCILICIOUS", "ABERRATION", "ENIGMATIC", "IMPERTINENT", "INTRANSIGENT",
+    "NEFARIOUS", "SAGACIOUS", "TENACIOUS", "ZEALOUS", "INTRANSIGENT", "CONUNDRUM"
 ];
 
 let currentWord = "";
@@ -652,4 +653,5 @@ const config = {
 
 
 new Phaser.Game(config);
+
 
