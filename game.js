@@ -1,0 +1,647 @@
+const easyWords = [
+    "QUEEN", "ZERO", "KETTLE", "JACKET", "HORSE",
+    "HEART", "LEAF", "WAGON", "SHARK", "QUACK",
+    "VULTURE", "YATCH", "AIRPLANE", "BOOK", "TOY"
+];
+ 
+const intermediateWords = [
+    "DRAGON", "CASTLE", "FOREST", "BATTLE", "WIZARD",
+    "OBSFUSCATE", "SHADOW", "BRIDGE", "FROZEN", "GOLDEN",
+    "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT"
+];
+
+let currentWord = "";
+let lastWord = "";
+let typedCorrectly = 0; // Track how many letters typed correctly
+let currentScore = 0;
+let personalBest = parseInt(localStorage.getItem('typingGamePersonalBest') || '0');
+let isCurrentWordIntermediate = false;
+
+class TypingGame extends Phaser.Scene {
+    constructor() {
+        super("TypingGame");
+    }
+
+    preload() {
+        // Create simple pixel art sprites
+        this.createSprites();
+    }
+
+    createSprites() {
+        // Create knight sprite (player)
+        const knightGraphics = this.add.graphics();
+        knightGraphics.fillStyle(0x4a90e2);
+        knightGraphics.fillRect(0, 0, 32, 40);
+        knightGraphics.fillStyle(0x7f8c8d);
+        knightGraphics.fillRect(8, 0, 16, 12); // helmet
+        knightGraphics.fillStyle(0xf39c12);
+        knightGraphics.fillRect(4, 12, 24, 8); // chest
+        knightGraphics.fillStyle(0x34495e);
+        knightGraphics.fillRect(12, 20, 8, 20); // body
+        knightGraphics.generateTexture('knight', 32, 40);
+        knightGraphics.destroy();
+
+        // Create enemy sprite (goblin/orc)
+        const enemyGraphics = this.add.graphics();
+        enemyGraphics.fillStyle(0x27ae60);
+        enemyGraphics.fillRect(0, 0, 28, 36);
+        enemyGraphics.fillStyle(0x2c3e50);
+        enemyGraphics.fillRect(6, 0, 16, 10); // head
+        enemyGraphics.fillStyle(0xe74c3c);
+        enemyGraphics.fillRect(8, 2, 4, 4); // eyes
+        enemyGraphics.fillRect(16, 2, 4, 4);
+        enemyGraphics.fillStyle(0x8b4513);
+        enemyGraphics.fillRect(4, 10, 20, 26); // body
+        enemyGraphics.generateTexture('enemy', 28, 36);
+        enemyGraphics.destroy();
+
+        // Create forest background elements
+        const treeGraphics = this.add.graphics();
+        treeGraphics.fillStyle(0x8b4513);
+        treeGraphics.fillRect(15, 20, 10, 30); // trunk
+        treeGraphics.fillStyle(0x228b22);
+        treeGraphics.fillCircle(20, 20, 15); // leaves
+        treeGraphics.generateTexture('tree', 40, 50);
+        treeGraphics.destroy();
+    }
+
+    create() {
+        this.timeLimit = 5; // Changed to 5 seconds
+        this.timeLeft = this.timeLimit;
+        this.playerHealth = 10;
+        this.enemyHealth = 10;
+        this.enemyCount = 1;
+        currentScore = 0; // Reset score at game start
+        this.isPaused = false;
+
+        // Create forest background
+        this.cameras.main.setBackgroundColor('#2d5016');
+        
+        // Add trees for forest atmosphere
+        for (let i = 0; i < 8; i++) {
+            const x = Phaser.Math.Between(50, 750);
+            const y = Phaser.Math.Between(450, 550);
+            const tree = this.add.image(x, y, 'tree').setScale(0.8 + Math.random() * 0.4);
+            tree.setTint(0x1a4a1a + Math.random() * 0x003300);
+        }
+
+        // Add ground
+        const ground = this.add.rectangle(400, 580, 800, 40, 0x4a3c2a);
+
+        // Create characters
+        this.player = this.add.image(150, 500, 'knight').setScale(2);
+        this.enemy = this.add.image(650, 500, 'enemy').setScale(2);
+
+        // Add floating animation to characters
+        this.tweens.add({
+            targets: this.player,
+            y: 495,
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        this.tweens.add({
+            targets: this.enemy,
+            y: 495,
+            duration: 1800,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        // Word display with individual letter styling
+        this.wordContainer = this.add.container(400, 150);
+        this.letterSprites = [];
+
+        // Typed text display
+        this.typedText = this.add.text(400, 250, "", {
+            fontSize: "24px",
+            fill: "#00ff41",
+            fontFamily: "Courier New"
+        }).setOrigin(0.5);
+
+        // Score display
+        this.add.text(400, 370, "SCORE", {
+            fontSize: "14px",
+            fill: "#fff",
+            fontFamily: "Courier New"
+        }).setOrigin(0.5);
+        
+        this.scoreText = this.add.text(400, 390, "0", {
+            fontSize: "20px",
+            fill: "#f39c12",
+            fontFamily: "Courier New",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+
+        // Timer display
+        this.add.text(400, 30, "TIME", {
+            fontSize: "16px",
+            fill: "#fff",
+            fontFamily: "Courier New"
+        }).setOrigin(0.5);
+
+        // Timer bar background
+        this.timerBg = this.add.rectangle(400, 50, 400, 24, 0x2c3e50);
+        this.timerBg.setStrokeStyle(2, 0x34495e);
+
+        // Timer bar foreground
+        this.timerBar = this.add.rectangle(200, 50, 400, 20, 0x00ff41).setOrigin(0, 0.5);
+
+        // Health bars
+        this.add.text(150, 80, "KNIGHT", { 
+            fontSize: "14px", 
+            fill: "#fff",
+            fontFamily: "Courier New"
+        }).setOrigin(0.5);
+        
+        this.playerBarBg = this.add.rectangle(80, 100, 140, 16, 0x2c3e50).setOrigin(0, 0.5);
+        this.playerBarBg.setStrokeStyle(1, 0x34495e);
+        this.playerBar = this.add.rectangle(80, 100, 140, 14, 0x27ae60).setOrigin(0, 0.5);
+
+        this.add.text(650, 80, "ENEMY", { 
+            fontSize: "14px", 
+            fill: "#fff",
+            fontFamily: "Courier New"
+        }).setOrigin(0.5);
+        
+        this.enemyBarBg = this.add.rectangle(580, 100, 140, 16, 0x2c3e50).setOrigin(0, 0.5);
+        this.enemyBarBg.setStrokeStyle(1, 0x34495e);
+        this.enemyBar = this.add.rectangle(580, 100, 140, 14, 0xe74c3c).setOrigin(0, 0.5);
+
+        // First word
+        this.nextWord();
+
+        // Key input - automatically register when scene starts
+        this.input.keyboard.on("keydown", (event) => {
+            // Handle pause/unpause
+            if (event.key === "Escape") {
+                if (!this.isPaused) {
+                    this.pauseGame();
+                } else {
+                    this.unpauseGame();
+                }
+                return;
+            }
+            
+            // Don't process other keys if game is paused
+            if (this.isPaused) return;
+            
+            const key = event.key.toUpperCase();
+            
+            if (key.length === 1 && key.match(/[A-Z]/)) {
+                // Check if this is the next correct letter
+                if (key === currentWord[typedCorrectly]) {
+                    typedCorrectly++;
+                    this.updateWordDisplay();
+                    this.typedText.setText(currentWord.substring(0, typedCorrectly));
+                    
+                    // Player attack animation
+                    this.playerAttack();
+                    
+                    // Check if word is complete
+                    if (typedCorrectly === currentWord.length) {
+                        this.enemyHealth -= 2;
+                        
+                        // Add score based on difficulty
+                        const points = isCurrentWordIntermediate ? 200 : 100;
+                        currentScore += points;
+                        this.scoreText.setText(currentScore.toString());
+                        
+                        // Show points gained
+                        this.showPointsGained(points);
+                        
+                        this.enemyTakeDamage();
+                        
+                        if (this.enemyHealth <= 0) {
+                            this.enemyDefeated();
+                        } else {
+                            this.updateHealthBars();
+                            this.nextWord();
+                        }
+                    }
+                } else {
+                    // Wrong letter - damage player and visual feedback
+                    this.playerHealth -= 1;
+                    this.playerTakeDamage();
+                    
+                    if (this.playerHealth <= 0) {
+                        this.scene.start("GameOver", { 
+                            winner: "Enemy", 
+                            enemiesDefeated: this.enemyCount - 1,
+                            finalScore: currentScore,
+                            personalBest: personalBest
+                        });
+                        return;
+                    }
+                    
+                    this.updateHealthBars();
+                    this.cameras.main.shake(100, 0.01);
+                    this.typedText.setTint(0xff0000);
+                    this.time.delayedCall(200, () => {
+                        this.typedText.clearTint();
+                    });
+                }
+            }
+            
+            if (event.key === "Backspace" && typedCorrectly > 0) {
+                typedCorrectly--;
+                this.updateWordDisplay();
+                this.typedText.setText(currentWord.substring(0, typedCorrectly));
+            }
+        });
+    }
+
+    pauseGame() {
+        this.isPaused = true;
+        
+        // Create blur effect
+        this.cameras.main.setPostPipeline('BlurPostFX');
+        
+        // Create pause overlay
+        this.pauseOverlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.3);
+        this.pauseText = this.add.text(400, 300, "GAME PAUSED\nPress ESC to resume", {
+            fontSize: "32px",
+            fill: "#fff",
+            fontFamily: "Courier New",
+            fontStyle: "bold",
+            align: "center"
+        }).setOrigin(0.5);
+    }
+
+    unpauseGame() {
+        // Remove pause overlay
+        if (this.pauseOverlay) this.pauseOverlay.destroy();
+        if (this.pauseText) this.pauseText.destroy();
+        
+        // Start countdown
+        this.startCountdown();
+    }
+
+    startCountdown() {
+        let count = 3;
+        const countdownText = this.add.text(400, 300, count.toString(), {
+            fontSize: "72px",
+            fill: "#fff",
+            fontFamily: "Courier New",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+
+        const countdownTimer = this.time.addEvent({
+            delay: 1000,
+            repeat: 2,
+            callback: () => {
+                count--;
+                if (count > 0) {
+                    countdownText.setText(count.toString());
+                } else {
+                    countdownText.destroy();
+                    // Remove blur and unpause
+                    this.cameras.main.resetPostPipeline();
+                    this.isPaused = false;
+                }
+            }
+        });
+    }
+
+    playerAttack() {
+        // Simple attack animation
+        this.tweens.add({
+            targets: this.player,
+            scaleX: 2.2,
+            scaleY: 2.2,
+            duration: 150,
+            yoyo: true,
+            ease: 'Power2'
+        });
+    }
+
+    showPointsGained(points) {
+        // Create floating points text
+        const pointsText = this.add.text(400, 300, `+${points}`, {
+            fontSize: "24px",
+            fill: points === 200 ? "#e74c3c" : "#27ae60",
+            fontFamily: "Courier New",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+        
+        this.tweens.add({
+            targets: pointsText,
+            y: 250,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => {
+                pointsText.destroy();
+            }
+        });
+    }
+
+    enemyTakeDamage() {
+        // Enemy damage animation
+        this.tweens.add({
+            targets: this.enemy,
+            tint: 0xff0000,
+            duration: 200,
+            yoyo: true,
+            onComplete: () => {
+                this.enemy.clearTint();
+            }
+        });
+    }
+
+    enemyDefeated() {
+        // Enemy defeat animation
+        this.tweens.add({
+            targets: this.enemy,
+            alpha: 0,
+            scaleX: 0,
+            scaleY: 0,
+            rotation: Math.PI * 2,
+            duration: 500,
+            onComplete: () => {
+                this.spawnNewEnemy();
+            }
+        });
+    }
+
+    spawnNewEnemy() {
+        this.enemyCount++;
+        this.enemyHealth = 10;
+        
+        // Respawn enemy with animation
+        this.enemy.setAlpha(1);
+        this.enemy.setScale(0);
+        this.enemy.setRotation(0);
+        
+        this.tweens.add({
+            targets: this.enemy,
+            scaleX: 2,
+            scaleY: 2,
+            duration: 500,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                this.updateHealthBars();
+                this.nextWord();
+            }
+        });
+    }
+
+    updateWordDisplay() {
+        // Clear existing letters
+        this.letterSprites.forEach(sprite => sprite.destroy());
+        this.letterSprites = [];
+
+        const letterWidth = 40;
+        const startX = -(currentWord.length * letterWidth) / 2 + letterWidth / 2;
+
+        for (let i = 0; i < currentWord.length; i++) {
+            const letter = currentWord[i];
+            const x = startX + i * letterWidth;
+            
+            // Determine color based on typing progress
+            let color = "#ffffff"; // white for untyped
+            if (i < typedCorrectly) {
+                color = "#2c3e50"; // dark for completed
+            } else if (i === typedCorrectly) {
+                color = "#f39c12"; // orange for current letter
+            }
+            
+            const letterText = this.add.text(x, 0, letter, {
+                fontSize: "36px",
+                fill: color,
+                fontFamily: "Courier New",
+                fontStyle: "bold"
+            }).setOrigin(0.5);
+
+            // Add background for better visibility
+            const bg = this.add.rectangle(x, 0, 35, 45, 0x34495e, 0.7);
+            bg.setStrokeStyle(2, i < typedCorrectly ? 0x27ae60 : 0x7f8c8d);
+            
+            this.wordContainer.add([bg, letterText]);
+            this.letterSprites.push(letterText);
+            this.letterSprites.push(bg);
+        }
+    }
+
+    update(time, delta) {
+        // Don't update game mechanics if paused
+        if (this.isPaused) return;
+        
+        this.timeLeft -= delta / 1000;
+        
+        if (this.timeLeft <= 0) {
+            this.playerHealth -= 2;
+            this.playerTakeDamage();
+            
+            if (this.playerHealth <= 0) {
+                this.scene.start("GameOver", { 
+                    winner: "Enemy", 
+                    enemiesDefeated: this.enemyCount - 1,
+                    finalScore: currentScore,
+                    personalBest: personalBest
+                });
+                return;
+            }
+            this.updateHealthBars();
+            this.nextWord();
+        }
+
+        // Update timer bar
+        const width = Math.max((this.timeLeft / this.timeLimit) * 400, 0);
+        this.timerBar.width = width;
+        
+        // Change timer color as it gets low
+        if (this.timeLeft < 5) {
+            this.timerBar.fillColor = 0xff0000;
+        } else if (this.timeLeft < 10) {
+            this.timerBar.fillColor = 0xff9500;
+        } else {
+            this.timerBar.fillColor = 0x00ff41;
+        }
+    }
+
+    playerTakeDamage() {
+        // Player damage animation
+        this.tweens.add({
+            targets: this.player,
+            tint: 0xff0000,
+            duration: 300,
+            yoyo: true,
+            onComplete: () => {
+                this.player.clearTint();
+            }
+        });
+    }
+
+    nextWord() {
+        // Randomly choose between easy and intermediate words
+        const useIntermediate = Math.random() < 0.4; // 40% chance for intermediate
+        const wordPool = useIntermediate ? intermediateWords : easyWords;
+        isCurrentWordIntermediate = useIntermediate;
+        
+        let newWord;
+        do {
+            newWord = Phaser.Utils.Array.GetRandom(wordPool);
+        } while (newWord === lastWord);
+        
+        lastWord = newWord;
+        currentWord = newWord;
+        typedCorrectly = 0;
+        
+        this.typedText.setText("");
+        this.updateWordDisplay();
+        this.timeLeft = this.timeLimit; // Reset timer when new word appears
+    }
+
+    updateHealthBars() {
+        this.playerBar.width = (this.playerHealth / 10) * 140;
+        this.enemyBar.width = (this.enemyHealth / 10) * 140;
+        
+        // Change color based on health
+        if (this.playerHealth <= 3) {
+            this.playerBar.fillColor = 0xe74c3c;
+        } else if (this.playerHealth <= 6) {
+            this.playerBar.fillColor = 0xf39c12;
+        } else {
+            this.playerBar.fillColor = 0x27ae60;
+        }
+    }
+}
+
+class GameOver extends Phaser.Scene {
+    constructor() {
+        super("GameOver");
+    }
+
+    init(data) {
+        this.winner = data.winner;
+        this.enemiesDefeated = data.enemiesDefeated || 0;
+        this.finalScore = data.finalScore || 0;
+        this.personalBest = data.personalBest || 0;
+        
+        // Update personal best if current score is higher
+        if (this.finalScore > this.personalBest) {
+            this.personalBest = this.finalScore;
+            personalBest = this.personalBest;
+            // Note: localStorage would be used here in a real environment
+            // localStorage.setItem('typingGamePersonalBest', this.personalBest.toString());
+        }
+    }
+
+    create() {
+        this.cameras.main.setBackgroundColor('#2d5016');
+        
+        // Game over title
+        this.add.text(400, 200, `${this.winner} Wins!`, {
+            fontSize: "48px",
+            fill: this.winner === "Player" ? "#27ae60" : "#e74c3c",
+            fontFamily: "Courier New",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+
+        // Score display
+        this.add.text(400, 280, `Personal Best: ${this.personalBest}`, {
+            fontSize: "24px",
+            fill: "#f39c12",
+            fontFamily: "Courier New",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+
+        this.add.text(400, 320, `Score: ${this.finalScore}`, {
+            fontSize: "24px",
+            fill: this.finalScore > this.personalBest ? "#27ae60" : "#e74c3c",
+            fontFamily: "Courier New",
+            fontStyle: "bold"
+        }).setOrigin(0.5);
+
+        // New record indicator
+        if (this.finalScore > 0 && this.finalScore >= this.personalBest) {
+            const newRecordText = this.add.text(400, 360, "NEW RECORD!", {
+                fontSize: "18px",
+                fill: "#27ae60",
+                fontFamily: "Courier New",
+                fontStyle: "bold"
+            }).setOrigin(0.5);
+            
+            // Blinking effect for new record
+            this.tweens.add({
+                targets: newRecordText,
+                alpha: 0.3,
+                duration: 500,
+                yoyo: true,
+                repeat: -1
+            });
+        }
+
+        // Restart instruction
+        this.add.text(400, 420, "Press SPACE to restart", {
+            fontSize: "20px",
+            fill: "#bdc3c7",
+            fontFamily: "Courier New"
+        }).setOrigin(0.5);
+
+        // Blinking effect for restart text
+        this.tweens.add({
+            targets: this.children.getByName('restartText') || this.children.list[this.children.list.length - 1],
+            alpha: 0.3,
+            duration: 800,
+            yoyo: true,
+            repeat: -1
+        });
+
+        this.input.keyboard.once("keydown-SPACE", () => {
+            // Reset game state
+            typedCorrectly = 0;
+            this.scene.start("TypingGame");
+        });
+    }
+}
+
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    scene: [TypingGame, GameOver],
+    backgroundColor: "#2d5016",
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 }
+        }
+    },
+    pipeline: {
+        'BlurPostFX': class extends Phaser.Renderer.WebGL.Pipelines.PostFXPipeline {
+            constructor(game) {
+                super({
+                    game,
+                    renderTarget: true,
+                    fragShader: `
+                        precision mediump float;
+                        uniform sampler2D uMainSampler;
+                        varying vec2 outTexCoord;
+                        void main(void) {
+                            vec4 color = texture2D(uMainSampler, outTexCoord);
+                            vec4 blur = vec4(0.0);
+                            float blurSize = 0.008;
+                            blur += texture2D(uMainSampler, vec2(outTexCoord.x - 4.0*blurSize, outTexCoord.y)) * 0.05;
+                            blur += texture2D(uMainSampler, vec2(outTexCoord.x - 3.0*blurSize, outTexCoord.y)) * 0.09;
+                            blur += texture2D(uMainSampler, vec2(outTexCoord.x - 2.0*blurSize, outTexCoord.y)) * 0.12;
+                            blur += texture2D(uMainSampler, vec2(outTexCoord.x - blurSize, outTexCoord.y)) * 0.15;
+                            blur += texture2D(uMainSampler, vec2(outTexCoord.x, outTexCoord.y)) * 0.16;
+                            blur += texture2D(uMainSampler, vec2(outTexCoord.x + blurSize, outTexCoord.y)) * 0.15;
+                            blur += texture2D(uMainSampler, vec2(outTexCoord.x + 2.0*blurSize, outTexCoord.y)) * 0.12;
+                            blur += texture2D(uMainSampler, vec2(outTexCoord.x + 3.0*blurSize, outTexCoord.y)) * 0.09;
+                            blur += texture2D(uMainSampler, vec2(outTexCoord.x + 4.0*blurSize, outTexCoord.y)) * 0.05;
+                            gl_FragColor = blur;
+                        }
+                    `
+                });
+            }
+        }
+    }
+};
+
+new Phaser.Game(config);
