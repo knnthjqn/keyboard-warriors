@@ -263,12 +263,9 @@ class TypingGame extends Phaser.Scene {
 
     pauseGame() {
         this.isPaused = true;
-        
-        // Create blur effect
-        this.cameras.main.setPostPipeline('BlurPostFX');
-        
-        // Create pause overlay
-        this.pauseOverlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.3);
+        // Create semi-transparent overlay
+        this.pauseOverlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.5);
+        // Create clear pause overlay text
         this.pauseText = this.add.text(400, 300, "GAME PAUSED\nPress ESC to resume", {
             fontSize: "32px",
             fill: "#fff",
@@ -288,43 +285,28 @@ class TypingGame extends Phaser.Scene {
     }
 
     startCountdown() {
-        let count = 3;
-        const countdownText = this.add.text(400, 300, count.toString(), {
-            fontSize: "72px",
-            fill: "#fff",
-            fontFamily: "Courier New",
-            fontStyle: "bold"
-        }).setOrigin(0.5);
-
-        const countdownTimer = this.time.addEvent({
-            delay: 1000,
-            repeat: 2,
-            callback: () => {
-                count--;
-                if (count > 0) {
-                    countdownText.setText(count.toString());
-                } else {
-                    countdownText.destroy();
-                    // Remove blur and unpause
-                    this.cameras.main.resetPostPipeline();
-                    this.isPaused = false;
-                }
+    let count = 3;
+    const countdownText = this.add.text(400, 300, count.toString(), {
+        fontSize: "72px",
+        fill: "#fff",
+        fontFamily: "Courier New",
+        fontStyle: "bold"
+    }).setOrigin(0.5);
+    const countdownTimer = this.time.addEvent({
+        delay: 1000,
+        repeat: 2,
+        callback: () => {
+            count--;
+            if (count > 0) {
+                countdownText.setText(count.toString());
+            } else {
+                countdownText.destroy();
+                this.cameras.main.resetPostPipeline();
+                this.isPaused = false;
             }
-        });
+        }
+    });
     }
-
-    playerAttack() {
-        // Simple attack animation
-        this.tweens.add({
-            targets: this.player,
-            scaleX: 2.2,
-            scaleY: 2.2,
-            duration: 150,
-            yoyo: true,
-            ease: 'Power2'
-        });
-    }
-
     showPointsGained(points) {
         // Create floating points text
         const pointsText = this.add.text(400, 300, `+${points}`, {
@@ -653,5 +635,6 @@ const config = {
 
 
 new Phaser.Game(config);
+
 
 
