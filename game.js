@@ -1,13 +1,16 @@
 const easyWords = [
     "QUEEN", "ZERO", "KETTLE", "JACKET", "HORSE",
     "HEART", "LEAF", "WAGON", "SHARK", "QUACK",
-    "VULTURE", "YATCH", "AIRPLANE", "BOOK", "TOY"
+    "VULTURE", "YATCH", "AIRPLANE", "BOOK", "TOY",
+    "INDEX", "TISSUE"
 ];
  
 const intermediateWords = [
     "DRAGON", "CASTLE", "FOREST", "BATTLE", "WIZARD",
     "OBSFUSCATE", "SHADOW", "BRIDGE", "FROZEN", "GOLDEN",
-    "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT"
+    "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT",
+    "DANGER", "INTRASIGENT", "STADIUM", "VILLIAN", "CRIMSON",
+    "MASSIVE", "INFERNO", "REQUEST", "COMMIT", "INSIGHTS", "WARRIOR"
 ];
 
 let currentWord = "";
@@ -643,5 +646,6 @@ const config = {
         }
     }
 };
+
 
 new Phaser.Game(config);
