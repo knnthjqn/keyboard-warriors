@@ -14,15 +14,28 @@ const gameState = {
 
         // Word pools
         const easyWords = [
-            "CAT", "DOG", "SUN", "CAR", "BAG",
-            "HAT", "PIG", "BIG", "RED", "BED",
-            "CUP", "RUN", "TOP", "BOX", "TOY"
+            "QUEEN", "ZERO", "KETTLE", "JACKET", "HORSE",
+                "HEART", "LEAF", "WAGON", "SHARK", "QUACK",
+                "VULTURE", "YATCH", "AIRPLANE", "BOOK", "TOY",
+                "INDEX", "TISSUE", "ACCURATE", "DECLINE", "GENEROUS",
+                "KNOWLEDGE", "STRUGGLE", "YOUTHFUL", "FREEDOM", "JUSTICE",
+                "ZEPHYR", "PATIENT", "UNIFORM", "VICTORY", "ALACRITY", "ANTIPATHY",
+                "ASPERSION", "ASSIDUOUS", "CAPRICIOUS", "COGENT", "DICHOTOMY", "DISSONANCE",
+                "EBONY", "ENERVATE", "EQUANIMITY", "ESOTERIC", "EXPEDITIOUS", "FECUND",
+                "HAPHAZARD", "ICONOCLAST", "NONCHALANT", "OBDURATE", "OBLIQUE", "ALCHEMY",
+                "AMBIVALENT", "ARCANE", "CHIMERICAL", "DEFERENCE", "FELICITOUS", "OMINOUS",
+                "REVERENCE", "AESTHETIC", "BENEVOLENT", "BLASPHEMOUS", "CENSURE", 
+                "COMPLACENT", "DELUGE", "EGREGIOUS", "GALVANIZE", "INCENDIARY", "JUXTAPOSE"
         ];
         
         const intermediateWords = [
             "DRAGON", "CASTLE", "FOREST", "BATTLE", "WIZARD",
-            "KNIGHT", "SHADOW", "BRIDGE", "FROZEN", "GOLDEN",
-            "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT"
+                "OBSFUSCATE", "SHADOW", "BRIDGE", "FROZEN", "GOLDEN",
+                "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT",
+                "DANGER", "INTRASIGENT", "STADIUM", "VILLIAN", "CRIMSON",
+                "MASSIVE", "INFERNO", "REQUEST", "COMMIT", "INSIGHTS", "WARRIOR",
+                "SUPERCILICIOUS", "ABERRATION", "ENIGMATIC", "IMPERTINENT", "INTRANSIGENT",
+                "NEFARIOUS", "SAGACIOUS", "TENACIOUS", "ZEALOUS", "INTRANSIGENT", "CONUNDRUM"
         ];
 
         class TypingGame extends Phaser.Scene {
@@ -502,6 +515,10 @@ const gameState = {
                 });
                 
                 this.cleanupUpgradeUI();
+                
+                // FIX: Reset timer and continue the game after upgrade selection
+                this.timeLeft = this.timeLimit;
+                this.nextWord();
             }
 
             autoSelectUpgrade() {
@@ -685,7 +702,7 @@ const gameState = {
 
             startBossFight() {
                 this.isBossFight = true;
-                this.timeLimit = 60; // Boss fight timer (no bonus)
+                this.timeLimit = 45; // Boss fight timer (no bonus)
                 this.timeLeft = this.timeLimit;
                 this.enemyHealth = 30;
                 
