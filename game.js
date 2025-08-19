@@ -1,48 +1,44 @@
-// Ensure Phaser is loaded
-// If using Jekyll, make sure to load Phaser via CDN in your HTML:
-// <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
-
 const gameState = {
-    currentWord: "",
-    lastWord: "",
-    typedCorrectly: 0,
-    currentScore: 0,
-    personalBest: 0,
-    isCurrentWordIntermediate: false,
-    playerExperience: 0,
-    playerLevel: 1,
-    playerDamage: 2,
-    maxPlayerHealth: 10,
-    timerBonus: 0
-};
+            currentWord: "",
+            lastWord: "",
+            typedCorrectly: 0,
+            currentScore: 0,
+            personalBest: 0,
+            isCurrentWordIntermediate: false,
+            playerExperience: 0,
+            playerLevel: 1,
+            playerDamage: 2,
+            maxPlayerHealth: 10,
+            timerBonus: 0
+        };
 
-// Word pools
-const easyWords = [
-    "QUEEN", "ZERO", "KETTLE", "JACKET", "HORSE",
-    "HEART", "LEAF", "WAGON", "SHARK", "QUACK",
-    "VULTURE", "YATCH", "AIRPLANE", "BOOK", "TOY",
-    "INDEX", "TISSUE", "ACCURATE", "DECLINE", "GENEROUS",
-    "KNOWLEDGE", "STRUGGLE", "YOUTHFUL", "FREEDOM", "JUSTICE",
-    "ZEPHYR", "PATIENT", "UNIFORM", "VICTORY", "ALACRITY", "ANTIPATHY",
-    "ASPERSION", "ASSIDUOUS", "CAPRICIOUS", "COGENT", "DICHOTOMY", "DISSONANCE",
-    "EBONY", "ENERVATE", "EQUANIMITY", "ESOTERIC", "EXPEDITIOUS", "FECUND",
-    "HAPHAZARD", "ICONOCLAST", "NONCHALANT", "OBDURATE", "OBLIQUE", "ALCHEMY",
-    "AMBIVALENT", "ARCANE", "CHIMERICAL", "DEFERENCE", "FELICITOUS", "OMINOUS",
-    "REVERENCE", "AESTHETIC", "BENEVOLENT", "BLASPHEMOUS", "CENSURE", 
-    "COMPLACENT", "DELUGE", "EGREGIOUS", "GALVANIZE", "INCENDIARY", "JUXTAPOSE"
-];
+        // Word pools
+        const easyWords = [
+            "QUEEN", "ZERO", "KETTLE", "JACKET", "HORSE",
+                "HEART", "LEAF", "WAGON", "SHARK", "QUACK",
+                "VULTURE", "YATCH", "AIRPLANE", "BOOK", "TOY",
+                "INDEX", "TISSUE", "ACCURATE", "DECLINE", "GENEROUS",
+                "KNOWLEDGE", "STRUGGLE", "YOUTHFUL", "FREEDOM", "JUSTICE",
+                "ZEPHYR", "PATIENT", "UNIFORM", "VICTORY", "ALACRITY", "ANTIPATHY",
+                "ASPERSION", "ASSIDUOUS", "CAPRICIOUS", "COGENT", "DICHOTOMY", "DISSONANCE",
+                "EBONY", "ENERVATE", "EQUANIMITY", "ESOTERIC", "EXPEDITIOUS", "FECUND",
+                "HAPHAZARD", "ICONOCLAST", "NONCHALANT", "OBDURATE", "OBLIQUE", "ALCHEMY",
+                "AMBIVALENT", "ARCANE", "CHIMERICAL", "DEFERENCE", "FELICITOUS", "OMINOUS",
+                "REVERENCE", "AESTHETIC", "BENEVOLENT", "BLASPHEMOUS", "CENSURE", 
+                "COMPLACENT", "DELUGE", "EGREGIOUS", "GALVANIZE", "INCENDIARY", "JUXTAPOSE"
+        ];
+        
+        const intermediateWords = [
+            "DRAGON", "CASTLE", "FOREST", "BATTLE", "WIZARD",
+                "OBSFUSCATE", "SHADOW", "BRIDGE", "FROZEN", "GOLDEN",
+                "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT",
+                "DANGER", "INTRASIGENT", "STADIUM", "VILLIAN", "CRIMSON",
+                "MASSIVE", "INFERNO", "REQUEST", "COMMIT", "INSIGHTS", "WARRIOR",
+                "SUPERCILICIOUS", "ABERRATION", "ENIGMATIC", "IMPERTINENT", "INTRANSIGENT",
+                "NEFARIOUS", "SAGACIOUS", "TENACIOUS", "ZEALOUS", "INTRANSIGENT", "CONUNDRUM"
+        ];
 
-const intermediateWords = [
-    "DRAGON", "CASTLE", "FOREST", "BATTLE", "WIZARD",
-    "OBSFUSCATE", "SHADOW", "BRIDGE", "FROZEN", "GOLDEN",
-    "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT",
-    "DANGER", "INTRASIGENT", "STADIUM", "VILLIAN", "CRIMSON",
-    "MASSIVE", "INFERNO", "REQUEST", "COMMIT", "INSIGHTS", "WARRIOR",
-    "SUPERCILICIOUS", "ABERRATION", "ENIGMATIC", "IMPERTINENT", "INTRANSIGENT",
-    "NEFARIOUS", "SAGACIOUS", "TENACIOUS", "ZEALOUS", "INTRANSIGENT", "CONUNDRUM"
-];
-
-class TypingGame extends Phaser.Scene {
+        class TypingGame extends Phaser.Scene {
             constructor() {
                 super({ key: "TypingGame" });
             }
@@ -1010,24 +1006,20 @@ class TypingGame extends Phaser.Scene {
             }
         }
 
-    // Game configuration
-    const config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        scene: [TypingGame, GameOver],
-        backgroundColor: "#2d5016",
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 0 }
+        // Game configuration
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            scene: [TypingGame, GameOver],
+            backgroundColor: "#2d5016",
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 }
+                }
             }
-        }
-    };
+        };
 
-    // Start the game
-    window.addEventListener('DOMContentLoaded', function() {
+        // Start the game
         new Phaser.Game(config);
-    });
-
-
