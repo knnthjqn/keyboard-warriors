@@ -1023,3 +1023,4 @@ const gameState = {
 
         // Start the game
         new Phaser.Game(config);
+
