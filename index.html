@@ -1,4 +1,4 @@
-//animated code(not working)
+//updated animated code(not working)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,168 +26,236 @@
     </style>
 </head>
 <body>
-    <script>
-        const gameState = {
-            currentWord: "",
-            lastWord: "",
-            typedCorrectly: 0,
-            currentScore: 0,
-            personalBest: 0,
-            isCurrentWordIntermediate: false,
-            playerExperience: 0,
-            playerLevel: 1,
-            playerDamage: 2,
-            maxPlayerHealth: 10,
-            timerBonus: 0
-        };
+<script>
+const gameState = {
+    currentWord: "",
+    lastWord: "",
+    typedCorrectly: 0,
+    currentScore: 0,
+    personalBest: 0,
+    isCurrentWordIntermediate: false,
+    playerExperience: 0,
+    playerLevel: 1,
+    playerDamage: 2,
+    maxPlayerHealth: 10,
+    timerBonus: 0
+};
 
-        // Word pools
-        const easyWords = [
-            "QUEEN", "ZERO", "KETTLE", "JACKET", "HORSE",
-                "HEART", "LEAF", "WAGON", "SHARK", "QUACK",
-                "VULTURE", "YATCH", "AIRPLANE", "BOOK", "TOY",
-                "INDEX", "TISSUE", "ACCURATE", "DECLINE", "GENEROUS",
-                "KNOWLEDGE", "STRUGGLE", "YOUTHFUL", "FREEDOM", "JUSTICE",
-                "ZEPHYR", "PATIENT", "UNIFORM", "VICTORY", "ALACRITY", "ANTIPATHY",
-                "ASPERSION", "ASSIDUOUS", "CAPRICIOUS", "COGENT", "DICHOTOMY", "DISSONANCE",
-                "ENERVATE", "EQUANIMITY", "ESOTERIC", "EXPEDITIOUS", "FECUND",
-                "HAPHAZARD", "ICONOCLAST", "NONCHALANT", "OBDURATE", "OBLIQUE", "ALCHEMY",
-                "AMBIVALENT", "ARCANE", "CHIMERICAL", "DEFERENCE", "FELICITOUS", "OMINOUS",
-                "REVERENCE", "AESTHETIC", "BENEVOLENT", "BLASPHEMOUS", "CENSURE", 
-                "COMPLACENT", "DELUGE", "EGREGIOUS", "GALVANIZE", "INCENDIARY", "JUXTAPOSE"
-        ];
-        
-        const intermediateWords = [
-            "DRAGON", "CASTLE", "FOREST", "BATTLE", "WIZARD",
-                "OBSFUSCATE", "SHADOW", "BRIDGE", "FROZEN", "GOLDEN",
-                "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT",
-                "DANGER", "INTRASIGENT", "STADIUM", "VILLIAN", "CRIMSON",
-                "MASSIVE", "INFERNO", "REQUEST", "COMMIT", "INSIGHTS", "WARRIOR",
-                "SUPERCILICIOUS", "ABERRATION", "ENIGMATIC", "IMPERTINENT", "INTRANSIGENT",
-                "NEFARIOUS", "SAGACIOUS", "TENACIOUS", "ZEALOUS", "INTRANSIGENT", "CONUNDRUM"
-        ];
+const easyWords = [
+    "QUEEN", "ZERO", "KETTLE", "JACKET", "HORSE", "HEART", "LEAF", "WAGON", "SHARK", "QUACK",
+    "VULTURE", "YATCH", "AIRPLANE", "BOOK", "TOY", "INDEX", "TISSUE", "ACCURATE", "DECLINE", "GENEROUS",
+    "KNOWLEDGE", "STRUGGLE", "YOUTHFUL", "FREEDOM", "JUSTICE", "ZEPHYR", "PATIENT", "UNIFORM", "VICTORY",
+    "ALACRITY", "ANTIPATHY", "ASPERSION", "ASSIDUOUS", "CAPRICIOUS", "COGENT", "DICHOTOMY", "DISSONANCE",
+    "ENERVATE", "EQUANIMITY", "ESOTERIC", "EXPEDITIOUS", "FECUND", "HAPHAZARD", "ICONOCLAST",
+    "NONCHALANT", "OBDURATE", "OBLIQUE", "ALCHEMY", "AMBIVALENT", "ARCANE", "CHIMERICAL", "DEFERENCE",
+    "FELICITOUS", "OMINOUS", "REVERENCE", "AESTHETIC", "BENEVOLENT", "BLASPHEMOUS", "CENSURE",
+    "COMPLACENT", "DELUGE", "EGREGIOUS", "GALVANIZE", "INCENDIARY", "JUXTAPOSE"
+];
 
-        class TypingGame extends Phaser.Scene {
-            constructor() {
-                super({ key: "TypingGame" });
-            }
+const intermediateWords = [
+    "DRAGON", "CASTLE", "FOREST", "BATTLE", "WIZARD", "OBSFUSCATE", "SHADOW", "BRIDGE", "FROZEN",
+    "GOLDEN", "PLANET", "THUNDER", "CRYSTAL", "VICTORY", "ANCIENT", "DANGER", "INTRASIGENT",
+    "STADIUM", "VILLIAN", "CRIMSON", "MASSIVE", "INFERNO", "REQUEST", "COMMIT", "INSIGHTS", "WARRIOR",
+    "SUPERCILICIOUS", "ABERRATION", "ENIGMATIC", "IMPERTINENT", "INTRANSIGENT", "NEFARIOUS", "SAGACIOUS",
+    "TENACIOUS", "ZEALOUS", "INTRANSIGENT", "CONUNDRUM"
+];
 
-            preload() {
-                this.createSprites();
-                this.load.image('knight', 'knight.jpg');
-                this.load.image('slime', 'slime.png');
-            }
+// Use base64 images so the game works standalone for knight/slime
+const knightImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAABUq7F3AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAF9JREFUeNpiYBgFo2AUjIJRMApgB4rA6QSRB8gk4QKYBMSgAkgKkQwSAHIk4A1QzABxCwSsoEwR4gcQKkQwSAHIk4A1QzABxCwSsoEwR4gcQKkQwSAHIk4A1QzABxCwSsoEwR4gcQKkQwSAHIk4A1QzABxCwSsoEwR4gcQKkQwSAHIk4A1QzABxCwSsoEwR4gcQKkQwSAHIk4A19QADABJdA6XbZK8AAAAASUVORK5CYII=";
+const slimeImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAVCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAE1JREFUeNpiYBgFo2AUjIJRMApgB4rA6QSRB8gk4QKYBMSgAkgKkQwSAHIk4A1QzABxCwSsoEwR4gcQKkQwSAHIk4A1QzABxCwSsoEwR4gcQKkQwSAHIk4A1QzABxCwSsoEwR4gfAABBgAKsUZQYAAAAASUVORK5CYII=";
 
-            createSprites() {
-                // Create boss sprite
-                const bossGraphics = this.add.graphics();
-                bossGraphics.fillStyle(0x8b0000);
-                bossGraphics.fillRect(0, 0, 40, 48);
-                bossGraphics.fillStyle(0x2c3e50);
-                bossGraphics.fillRect(8, 0, 24, 16); // head
-                bossGraphics.fillStyle(0xff0000);
-                bossGraphics.fillRect(12, 4, 6, 6); // eyes
-                bossGraphics.fillRect(22, 4, 6, 6);
-                bossGraphics.fillStyle(0x8b4513);
-                bossGraphics.fillRect(6, 16, 28, 32); // body
-                bossGraphics.fillStyle(0x444444);
-                bossGraphics.fillRect(2, 20, 4, 8); // spikes
-                bossGraphics.fillRect(34, 20, 4, 8);
-                bossGraphics.generateTexture('boss', 40, 48);
-                bossGraphics.destroy();
+class TypingGame extends Phaser.Scene {
+    constructor() {
+        super({ key: "TypingGame" });
+    }
 
-                // Create skull sprite
-                const skullGraphics = this.add.graphics();
-                skullGraphics.fillStyle(0xffffff);
-                skullGraphics.fillCircle(12, 10, 8);
-                skullGraphics.fillStyle(0x000000);
-                skullGraphics.fillCircle(8, 8, 2); // eyes
-                skullGraphics.fillCircle(16, 8, 2);
-                skullGraphics.fillRect(11, 12, 2, 4); // nose
-                skullGraphics.fillStyle(0xffffff);
-                skullGraphics.fillRect(5, 18, 14, 6); // jaw
-                skullGraphics.fillStyle(0x000000);
-                skullGraphics.fillRect(7, 20, 2, 2); // teeth
-                skullGraphics.fillRect(10, 20, 2, 2);
-                skullGraphics.fillRect(13, 20, 2, 2);
-                skullGraphics.fillRect(16, 20, 2, 2);
-                // Crown
-                skullGraphics.fillStyle(0xffd700);
-                skullGraphics.fillRect(4, 2, 16, 4);
-                skullGraphics.fillRect(8, 0, 2, 4);
-                skullGraphics.fillRect(12, 0, 2, 4);
-                skullGraphics.fillRect(16, 0, 2, 4);
-                skullGraphics.generateTexture('skull', 24, 24);
-                skullGraphics.destroy();
+    preload() {
+        this.load.image('knight', knightImg);
+        this.load.image('slime', slimeImg);
+    }
 
-                // Create tree sprite
-                const treeGraphics = this.add.graphics();
-                treeGraphics.fillStyle(0x8b4513);
-                treeGraphics.fillRect(15, 20, 10, 30);
-                treeGraphics.fillStyle(0x228b22);
-                treeGraphics.fillCircle(20, 20, 15);
-                treeGraphics.generateTexture('tree', 40, 50);
-                treeGraphics.destroy();
+    create() {
+        this.createSprites();
 
-                this.createKnightAnimations();
-                this.createSlimeAnimations();
-    
-                // Create the knight sprite (player)
-                this.knight = this.add.sprite(400, 300, 'knight');
-                this.knight.setScale(3); // Scale up for better visibility since it's pixelated
-    
-                // Create slime sprites (enemies)
-                this.slimes = this.physics.add.group();
-                this.createSlime(200, 200);
-                this.createSlime(600, 400);
-    
-                // Start animations
-                this.knight.play('knight_idle');
-    
-                // Set up physics if needed
-                this.physics.add.existing(this.knight);
-                this.knight.body.setCollideWorldBounds(true);
-                }
+        this.timeLimit = 5 + gameState.timerBonus;
+        this.timeLeft = this.timeLimit;
+        this.playerHealth = gameState.maxPlayerHealth;
+        this.enemyHealth = 10;
+        this.enemyCount = 1;
+        gameState.currentScore = 0;
+        this.isPaused = false;
+        this.progressBarEnemies = 0;
+        this.maxProgressEnemies = 10;
+        this.isBossFight = false;
+        this.isLevelingUp = false;
 
-                createKnightAnimations() {
-                    if (!this.anims.exists('knight_idle')) {
-                    // Create texture variations for knight animation frames
-                    this.createKnightFrames();
-        
-                    // Create the idle/breathing animation for knight
-                    this.anims.create({
-                        key: 'knight_idle',
-                        frames: [
-                            { key: 'knight_frame_1' },
-                            { key: 'knight_frame_2' },
-                            { key: 'knight_frame_3' },
-                            { key: 'knight_frame_4' }
-                        ],
-                        frameRate: 2, // Slow animation for breathing effect
-                        repeat: -1 // Loop forever
-                    });
-        
-                    // Create walking animation (you can expand this later)
-                    this.anims.create({
-                        key: 'knight_walk',
-                        frames: [
-                            { key: 'knight_frame_1' },
-                            { key: 'knight_frame_3' },
-                            { key: 'knight_frame_1' },
-                            { key: 'knight_frame_2' }
-                        ],
-                        frameRate: 4,
-                        repeat: -1
-                });
-            }
+        this.cameras.main.setBackgroundColor('#2d5016');
+        for (let i = 0; i < 8; i++) {
+            const x = Phaser.Math.Between(50, 750);
+            const y = Phaser.Math.Between(450, 550);
+            const tree = this.add.image(x, y, 'tree').setScale(0.8 + Math.random() * 0.4);
+            tree.setTint(0x1a4a1a + Math.random() * 0x003300);
         }
+        this.add.rectangle(400, 580, 800, 40, 0x4a3c2a);
 
-        createSlimeAnimations() {
-            if (!this.anims.exists('slime_idle')) {
-            // Create texture variations for slime animation frames
+        // Player and enemy sprites
+        this.player = this.add.sprite(150, 500, 'knight').setScale(2);
+        this.player.play('knight_idle');
+        this.enemy = this.add.sprite(650, 500, 'slime').setScale(2);
+        this.enemy.play('slime_idle');
+
+        this.tweens.add({
+            targets: this.player,
+            y: 495,
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+        this.tweens.add({
+            targets: this.enemy,
+            y: 495,
+            duration: 1800,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        this.createUI();
+        this.createProgressBar();
+        this.setupInput();
+        this.nextWord();
+    }
+
+    createSprites() {
+        // Boss sprite
+        const bossGraphics = this.add.graphics();
+        bossGraphics.fillStyle(0x8b0000);
+        bossGraphics.fillRect(0, 0, 40, 48);
+        bossGraphics.fillStyle(0x2c3e50);
+        bossGraphics.fillRect(8, 0, 24, 16); // head
+        bossGraphics.fillStyle(0xff0000);
+        bossGraphics.fillRect(12, 4, 6, 6); // eyes
+        bossGraphics.fillRect(22, 4, 6, 6);
+        bossGraphics.fillStyle(0x8b4513);
+        bossGraphics.fillRect(6, 16, 28, 32); // body
+        bossGraphics.fillStyle(0x444444);
+        bossGraphics.fillRect(2, 20, 4, 8); // spikes
+        bossGraphics.fillRect(34, 20, 4, 8);
+        bossGraphics.generateTexture('boss', 40, 48);
+        bossGraphics.destroy();
+
+        // Skull sprite
+        const skullGraphics = this.add.graphics();
+        skullGraphics.fillStyle(0xffffff);
+        skullGraphics.fillCircle(12, 10, 8);
+        skullGraphics.fillStyle(0x000000);
+        skullGraphics.fillCircle(8, 8, 2); // eyes
+        skullGraphics.fillCircle(16, 8, 2);
+        skullGraphics.fillRect(11, 12, 2, 4); // nose
+        skullGraphics.fillStyle(0xffffff);
+        skullGraphics.fillRect(5, 18, 14, 6); // jaw
+        skullGraphics.fillStyle(0x000000);
+        skullGraphics.fillRect(7, 20, 2, 2); // teeth
+        skullGraphics.fillRect(10, 20, 2, 2);
+        skullGraphics.fillRect(13, 20, 2, 2);
+        skullGraphics.fillRect(16, 20, 2, 2);
+        skullGraphics.fillStyle(0xffd700);
+        skullGraphics.fillRect(4, 2, 16, 4);
+        skullGraphics.fillRect(8, 0, 2, 4);
+        skullGraphics.fillRect(12, 0, 2, 4);
+        skullGraphics.fillRect(16, 0, 2, 4);
+        skullGraphics.generateTexture('skull', 24, 24);
+        skullGraphics.destroy();
+
+        // Tree sprite
+        const treeGraphics = this.add.graphics();
+        treeGraphics.fillStyle(0x8b4513);
+        treeGraphics.fillRect(15, 20, 10, 30);
+        treeGraphics.fillStyle(0x228b22);
+        treeGraphics.fillCircle(20, 20, 15);
+        treeGraphics.generateTexture('tree', 40, 50);
+        treeGraphics.destroy();
+
+        // Animations
+        this.createKnightAnimations();
+        this.createSlimeAnimations();
+    }
+
+    createKnightAnimations() {
+        if (!this.anims.exists('knight_idle')) {
+            this.createKnightFrames();
+            this.anims.create({
+                key: 'knight_idle',
+                frames: [
+                    { key: 'knight_frame_1' },
+                    { key: 'knight_frame_2' },
+                    { key: 'knight_frame_3' },
+                    { key: 'knight_frame_4' }
+                ],
+                frameRate: 2,
+                repeat: -1
+            });
+            this.anims.create({
+                key: 'knight_walk',
+                frames: [
+                    { key: 'knight_frame_1' },
+                    { key: 'knight_frame_3' },
+                    { key: 'knight_frame_1' },
+                    { key: 'knight_frame_2' }
+                ],
+                frameRate: 4,
+                repeat: -1
+            });
+        }
+    }
+
+    createKnightFrames() {
+        const baseTexture = this.textures.get('knight');
+        const baseImage = baseTexture.getSourceImage();
+
+        // Frame 1
+        let canvas = document.createElement('canvas');
+        let ctx = canvas.getContext('2d');
+        canvas.width = baseImage.width;
+        canvas.height = baseImage.height;
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(baseImage, 0, 0);
+        this.textures.addCanvas('knight_frame_1', canvas);
+
+        // Frame 2
+        let newCanvas2 = document.createElement('canvas');
+        let ctx2 = newCanvas2.getContext('2d');
+        newCanvas2.width = canvas.width;
+        newCanvas2.height = canvas.height;
+        ctx2.imageSmoothingEnabled = false;
+        ctx2.drawImage(baseImage, 0, Math.floor(canvas.height * 0.6), canvas.width, Math.floor(canvas.height * 0.4), 0, Math.floor(canvas.height * 0.6), canvas.width, Math.floor(canvas.height * 0.4));
+        ctx2.drawImage(baseImage, 0, 0, canvas.width, Math.floor(canvas.height * 0.6), 0, -1, canvas.width, Math.floor(canvas.height * 0.6));
+        this.textures.addCanvas('knight_frame_2', newCanvas2);
+
+        // Frame 3
+        let newCanvas3 = document.createElement('canvas');
+        let ctx3 = newCanvas3.getContext('2d');
+        newCanvas3.width = canvas.width;
+        newCanvas3.height = canvas.height;
+        ctx3.imageSmoothingEnabled = false;
+        ctx3.drawImage(baseImage, 0, 1);
+        this.textures.addCanvas('knight_frame_3', newCanvas3);
+
+        // Frame 4
+        let newCanvas4 = document.createElement('canvas');
+        let ctx4 = newCanvas4.getContext('2d');
+        newCanvas4.width = canvas.width;
+        newCanvas4.height = canvas.height;
+        ctx4.imageSmoothingEnabled = false;
+        ctx4.drawImage(baseImage, 0, 0);
+        this.textures.addCanvas('knight_frame_4', newCanvas4);
+    }
+
+    createSlimeAnimations() {
+        if (!this.anims.exists('slime_idle')) {
             this.createSlimeFrames();
-        
-            // Create the bouncing/breathing animation for slime
             this.anims.create({
                 key: 'slime_idle',
                 frames: [
@@ -196,11 +264,9 @@
                     { key: 'slime_frame_3' },
                     { key: 'slime_frame_4' }
                 ],
-                frameRate: 3, // Slightly faster than knight for bouncy feel
+                frameRate: 3,
                 repeat: -1
             });
-        
-            // Create slime bounce animation
             this.anims.create({
                 key: 'slime_bounce',
                 frames: [
@@ -215,1034 +281,562 @@
         }
     }
 
-    createKnightFrames() {
-        const baseTexture = this.textures.get('knight');
-        const baseImage = baseTexture.getSourceImage();
-    
-        // Create canvas for frame manipulation
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = baseImage.width;
-        canvas.height = baseImage.height;
-    
-        // Disable smoothing for pixel-perfect rendering
-        ctx.imageSmoothingEnabled = false;
-    
-        // Frame 1 - Original knight
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(baseImage, 0, 0);
-        this.textures.addCanvas('knight_frame_1', canvas);
-    
-        // Frame 2 - Sword slightly up (shift upper 60% up by 1 pixel)
-        const newCanvas2 = document.createElement('canvas');
-        const ctx2 = newCanvas2.getContext('2d');
-        newCanvas2.width = canvas.width;
-        newCanvas2.height = canvas.height;
-        ctx2.imageSmoothingEnabled = false;
-    
-        // Draw lower part normally
-        ctx2.drawImage(baseImage, 0, Math.floor(canvas.height * 0.6), canvas.width, Math.floor(canvas.height * 0.4), 
-                       0, Math.floor(canvas.height * 0.6), canvas.width, Math.floor(canvas.height * 0.4));
-        // Draw upper part (sword area) shifted up 1 pixel
-        ctx2.drawImage(baseImage, 0, 0, canvas.width, Math.floor(canvas.height * 0.6), 
-                       0, -1, canvas.width, Math.floor(canvas.height * 0.6));
-        this.textures.addCanvas('knight_frame_2', newCanvas2);
-    
-        // Frame 3 - Knight body bob down 1 pixel
-        const newCanvas3 = document.createElement('canvas');
-        const ctx3 = newCanvas3.getContext('2d');
-        newCanvas3.width = canvas.width;
-        newCanvas3.height = canvas.height;
-        ctx3.imageSmoothingEnabled = false;
-        ctx3.drawImage(baseImage, 0, 1);
-        this.textures.addCanvas('knight_frame_3', newCanvas3);
-    
-        // Frame 4 - Back to normal (same as frame 1)
-        const newCanvas4 = document.createElement('canvas');
-        const ctx4 = newCanvas4.getContext('2d');
-        newCanvas4.width = canvas.width;
-        newCanvas4.height = canvas.height;
-        ctx4.imageSmoothingEnabled = false;
-        ctx4.drawImage(baseImage, 0, 0);
-        this.textures.addCanvas('knight_frame_4', newCanvas4);
-    }
-
     createSlimeFrames() {
         const baseTexture = this.textures.get('slime');
         const baseImage = baseTexture.getSourceImage();
-    
-        // Create canvas for frame manipulation
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+
+        // Frame 1
+        let canvas = document.createElement('canvas');
+        let ctx = canvas.getContext('2d');
         canvas.width = baseImage.width;
         canvas.height = baseImage.height;
-    
-        // Disable smoothing for pixel-perfect rendering
         ctx.imageSmoothingEnabled = false;
-    
-        // Frame 1 - Original slime
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(baseImage, 0, 0);
         this.textures.addCanvas('slime_frame_1', canvas);
-    
-        // Frame 2 - Slime slightly compressed (squash effect)
-        const newCanvas2 = document.createElement('canvas');
-        const ctx2 = newCanvas2.getContext('2d');
+
+        // Frame 2
+        let newCanvas2 = document.createElement('canvas');
+        let ctx2 = newCanvas2.getContext('2d');
         newCanvas2.width = canvas.width;
         newCanvas2.height = canvas.height;
         ctx2.imageSmoothingEnabled = false;
-        // Draw slime slightly wider and shorter
         ctx2.drawImage(baseImage, -1, 1, canvas.width + 2, canvas.height - 1);
         this.textures.addCanvas('slime_frame_2', newCanvas2);
-    
-        // Frame 3 - Slime stretched vertically (stretch effect)
-        const newCanvas3 = document.createElement('canvas');
-        const ctx3 = newCanvas3.getContext('2d');
+
+        // Frame 3
+        let newCanvas3 = document.createElement('canvas');
+        let ctx3 = newCanvas3.getContext('2d');
         newCanvas3.width = canvas.width;
         newCanvas3.height = canvas.height;
         ctx3.imageSmoothingEnabled = false;
-        // Draw slime taller and narrower
         ctx3.drawImage(baseImage, 1, -1, canvas.width - 2, canvas.height + 2);
         this.textures.addCanvas('slime_frame_3', newCanvas3);
-    
-        // Frame 4 - Back to original with slight offset for bounce
-        const newCanvas4 = document.createElement('canvas');
-        const ctx4 = newCanvas4.getContext('2d');
+
+        // Frame 4
+        let newCanvas4 = document.createElement('canvas');
+        let ctx4 = newCanvas4.getContext('2d');
         newCanvas4.width = canvas.width;
         newCanvas4.height = canvas.height;
         ctx4.imageSmoothingEnabled = false;
-        ctx4.drawImage(baseImage, 0, -1); // Slight upward offset
+        ctx4.drawImage(baseImage, 0, -1);
         this.textures.addCanvas('slime_frame_4', newCanvas4);
     }
 
-    createSlime(x, y) {
-        const slime = this.physics.add.sprite(x, y, 'slime');
-        slime.setScale(2); // Scale up for visibility
-        slime.play('slime_idle');
-    
-        // Add some random movement
-        slime.setVelocity(
-            Phaser.Math.Between(-50, 50),
-            Phaser.Math.Between(-50, 50)
-        );
-    
-        // Bounce off world bounds
-        slime.setCollideWorldBounds(true);
-        slime.setBounce(1, 1);
-    
-        // Add to slimes group
-        this.slimes.add(slime);
-    
-        return slime;
+    createUI() {
+        this.add.text(400, 30, "TIME", { fontSize: "16px", fill: "#fff", fontFamily: "Courier New" }).setOrigin(0.5);
+        this.timerBg = this.add.rectangle(400, 50, 400, 24, 0x2c3e50);
+        this.timerBg.setStrokeStyle(2, 0x34495e);
+        this.timerBar = this.add.rectangle(200, 50, 400, 20, 0x00ff41).setOrigin(0, 0.5);
+
+        this.add.text(150, 80, "KNIGHT", { fontSize: "14px", fill: "#fff", fontFamily: "Courier New" }).setOrigin(0.5);
+        this.playerBarBg = this.add.rectangle(80, 100, 140, 16, 0x2c3e50).setOrigin(0, 0.5);
+        this.playerBarBg.setStrokeStyle(1, 0x34495e);
+        this.playerBar = this.add.rectangle(80, 100, 140, 14, 0x27ae60).setOrigin(0, 0.5);
+        this.playerHealthText = this.add.text(150, 120, `${this.playerHealth}/${gameState.maxPlayerHealth}`, { fontSize: "12px", fill: "#fff", fontFamily: "Courier New" }).setOrigin(0.5);
+
+        this.add.text(650, 80, "ENEMY", { fontSize: "14px", fill: "#fff", fontFamily: "Courier New" }).setOrigin(0.5);
+        this.enemyBarBg = this.add.rectangle(580, 100, 140, 16, 0x2c3e50).setOrigin(0, 0.5);
+        this.enemyBarBg.setStrokeStyle(1, 0x34495e);
+        this.enemyBar = this.add.rectangle(580, 100, 140, 14, 0xe74c3c).setOrigin(0, 0.5);
+
+        this.add.text(150, 140, "EXP", { fontSize: "12px", fill: "#fff", fontFamily: "Courier New" }).setOrigin(0.5);
+        this.expBarBg = this.add.rectangle(80, 160, 140, 12, 0x2c3e50).setOrigin(0, 0.5);
+        this.expBarBg.setStrokeStyle(1, 0x34495e);
+        this.expBar = this.add.rectangle(80, 160, 0, 10, 0x9b59b6).setOrigin(0, 0.5);
+        this.levelText = this.add.text(150, 180, `LV: ${gameState.playerLevel}`, { fontSize: "14px", fill: "#e74c3c", fontFamily: "Courier New", fontStyle: "bold" }).setOrigin(0.5);
+
+        this.wordContainer = this.add.container(400, 200);
+        this.letterSprites = [];
+        this.typedText = this.add.text(400, 300, "", { fontSize: "24px", fill: "#00ff41", fontFamily: "Courier New" }).setOrigin(0.5);
+
+        this.add.text(400, 420, "SCORE", { fontSize: "14px", fill: "#fff", fontFamily: "Courier New" }).setOrigin(0.5);
+        this.scoreText = this.add.text(400, 440, "0", { fontSize: "20px", fill: "#f39c12", fontFamily: "Courier New", fontStyle: "bold" }).setOrigin(0.5);
     }
 
-                
+    createProgressBar() {
+        this.progressBarContainer = this.add.container(400, 100);
+        this.progressSkulls = [];
+        const startX = -(this.maxProgressEnemies * 30) / 2 + 15;
+        for (let i = 0; i < this.maxProgressEnemies; i++) {
+            const x = startX + i * 30;
+            const skull = this.add.image(x, 0, 'skull').setScale(0.8);
+            if (i === this.maxProgressEnemies - 1) {
+                skull.setTint(0xff0000);
+            } else {
+                skull.setTint(0x000000);
             }
-
-            create() {
-                // Initialize game variables
-                this.timeLimit = 5 + gameState.timerBonus;
-                this.timeLeft = this.timeLimit;
-                this.playerHealth = gameState.maxPlayerHealth;
-                this.enemyHealth = 10;
-                this.enemyCount = 1;
-                gameState.currentScore = 0;
-                this.isPaused = false;
-                this.progressBarEnemies = 0;
-                this.maxProgressEnemies = 10;
-                this.isBossFight = false;
-                this.isLevelingUp = false;
-
-                // Create background
-                this.cameras.main.setBackgroundColor('#2d5016');
-                
-                // Add trees
-                for (let i = 0; i < 8; i++) {
-                    const x = Phaser.Math.Between(50, 750);
-                    const y = Phaser.Math.Between(450, 550);
-                    const tree = this.add.image(x, y, 'tree').setScale(0.8 + Math.random() * 0.4);
-                    tree.setTint(0x1a4a1a + Math.random() * 0x003300);
-                }
-
-                // Add ground
-                this.add.rectangle(400, 580, 800, 40, 0x4a3c2a);
-
-                // Create characters
-                this.player = this.add.image(150, 500, 'knight').setScale(2);
-                this.enemy = this.add.image(650, 500, 'enemy').setScale(2);
-
-                // Character animations
-                this.tweens.add({
-                    targets: this.player,
-                    y: 495,
-                    duration: 2000,
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Sine.easeInOut'
-                });
-
-                this.tweens.add({
-                    targets: this.enemy,
-                    y: 495,
-                    duration: 1800,
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Sine.easeInOut'
-                });
-
-                this.createUI();
-                this.createProgressBar();
-                this.setupInput();
-                this.nextWord();
-            }
-
-            createUI() {
-                // Timer
-                this.add.text(400, 30, "TIME", {
-                    fontSize: "16px",
-                    fill: "#fff",
-                    fontFamily: "Courier New"
-                }).setOrigin(0.5);
-
-                this.timerBg = this.add.rectangle(400, 50, 400, 24, 0x2c3e50);
-                this.timerBg.setStrokeStyle(2, 0x34495e);
-                this.timerBar = this.add.rectangle(200, 50, 400, 20, 0x00ff41).setOrigin(0, 0.5);
-
-                // Health bars
-                this.add.text(150, 80, "KNIGHT", { 
-                    fontSize: "14px", 
-                    fill: "#fff",
-                    fontFamily: "Courier New"
-                }).setOrigin(0.5);
-                
-                this.playerBarBg = this.add.rectangle(80, 100, 140, 16, 0x2c3e50).setOrigin(0, 0.5);
-                this.playerBarBg.setStrokeStyle(1, 0x34495e);
-                this.playerBar = this.add.rectangle(80, 100, 140, 14, 0x27ae60).setOrigin(0, 0.5);
-
-                this.playerHealthText = this.add.text(150, 120, `${this.playerHealth}/${gameState.maxPlayerHealth}`, {
-                    fontSize: "12px",
-                    fill: "#fff",
-                    fontFamily: "Courier New"
-                }).setOrigin(0.5);
-
-                this.add.text(650, 80, "ENEMY", { 
-                    fontSize: "14px", 
-                    fill: "#fff",
-                    fontFamily: "Courier New"
-                }).setOrigin(0.5);
-                
-                this.enemyBarBg = this.add.rectangle(580, 100, 140, 16, 0x2c3e50).setOrigin(0, 0.5);
-                this.enemyBarBg.setStrokeStyle(1, 0x34495e);
-                this.enemyBar = this.add.rectangle(580, 100, 140, 14, 0xe74c3c).setOrigin(0, 0.5);
-
-                // Experience bar
-                this.add.text(150, 140, "EXP", {
-                    fontSize: "12px",
-                    fill: "#fff",
-                    fontFamily: "Courier New"
-                }).setOrigin(0.5);
-                
-                this.expBarBg = this.add.rectangle(80, 160, 140, 12, 0x2c3e50).setOrigin(0, 0.5);
-                this.expBarBg.setStrokeStyle(1, 0x34495e);
-                this.expBar = this.add.rectangle(80, 160, 0, 10, 0x9b59b6).setOrigin(0, 0.5);
-
-                this.levelText = this.add.text(150, 180, `LV: ${gameState.playerLevel}`, {
-                    fontSize: "14px",
-                    fill: "#e74c3c",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold"
-                }).setOrigin(0.5);
-
-                // Word display
-                this.wordContainer = this.add.container(400, 200);
-                this.letterSprites = [];
-
-                this.typedText = this.add.text(400, 300, "", {
-                    fontSize: "24px",
-                    fill: "#00ff41",
-                    fontFamily: "Courier New"
-                }).setOrigin(0.5);
-
-                // Score
-                this.add.text(400, 420, "SCORE", {
-                    fontSize: "14px",
-                    fill: "#fff",
-                    fontFamily: "Courier New"
-                }).setOrigin(0.5);
-                
-                this.scoreText = this.add.text(400, 440, "0", {
-                    fontSize: "20px",
-                    fill: "#f39c12",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold"
-                }).setOrigin(0.5);
-            }
-
-            createProgressBar() {
-                this.progressBarContainer = this.add.container(400, 100);
-                this.progressSkulls = [];
-                
-                const startX = -(this.maxProgressEnemies * 30) / 2 + 15;
-                
-                for (let i = 0; i < this.maxProgressEnemies; i++) {
-                    const x = startX + i * 30;
-                    const skull = this.add.image(x, 0, 'skull').setScale(0.8);
-                    
-                    if (i === this.maxProgressEnemies - 1) {
-                        skull.setTint(0xff0000); // Boss skull red
-                    } else {
-                        skull.setTint(0x000000); // Regular skulls black
-                    }
-                    
-                    this.progressBarContainer.add(skull);
-                    this.progressSkulls.push(skull);
-                    
-                    if (i < this.maxProgressEnemies - 1) {
-                        for (let j = 0; j < 3; j++) {
-                            const dash = this.add.rectangle(x + 12 + j * 6, 0, 4, 2, 0x666666);
-                            this.progressBarContainer.add(dash);
-                        }
-                    }
+            this.progressBarContainer.add(skull);
+            this.progressSkulls.push(skull);
+            if (i < this.maxProgressEnemies - 1) {
+                for (let j = 0; j < 3; j++) {
+                    const dash = this.add.rectangle(x + 12 + j * 6, 0, 4, 2, 0x666666);
+                    this.progressBarContainer.add(dash);
                 }
             }
+        }
+    }
 
-            setupInput() {
-                this.input.keyboard.on("keydown", (event) => {
-                    if (event.key === "Escape") {
-                        if (!this.isPaused) {
-                            this.pauseGame();
-                        } else {
-                            this.unpauseGame();
-                        }
-                        return;
-                    }
-                    
-                    if (this.isPaused || this.isLevelingUp) return;
-                    
-                    const key = event.key.toUpperCase();
-                    
-                    if (key.length === 1 && key.match(/[A-Z]/)) {
-                        this.handleLetterInput(key);
-                    }
-                    
-                    if (event.key === "Backspace" && gameState.typedCorrectly > 0) {
-                        gameState.typedCorrectly--;
-                        this.updateWordDisplay();
-                        this.typedText.setText(gameState.currentWord.substring(0, gameState.typedCorrectly));
-                    }
-                });
-            }
-
-            handleLetterInput(key) {
-                if (key === gameState.currentWord[gameState.typedCorrectly]) {
-                    gameState.typedCorrectly++;
-                    this.updateWordDisplay();
-                    this.typedText.setText(gameState.currentWord.substring(0, gameState.typedCorrectly));
-                    
-                    this.playerAttack();
-                    
-                    if (gameState.typedCorrectly === gameState.currentWord.length) {
-                        this.wordCompleted();
-                    }
+    setupInput() {
+        this.input.keyboard.on("keydown", (event) => {
+            if (event.key === "Escape") {
+                if (!this.isPaused) {
+                    this.pauseGame();
                 } else {
-                    this.wrongLetter();
+                    this.unpauseGame();
                 }
+                return;
             }
-
-            wordCompleted() {
-                this.enemyHealth -= gameState.playerDamage;
-                
-                const points = gameState.isCurrentWordIntermediate ? 200 : 100;
-                const expGain = gameState.isCurrentWordIntermediate ? 20 : 10;
-                gameState.currentScore += points;
-                gameState.playerExperience += expGain;
-                
-                this.scoreText.setText(gameState.currentScore.toString());
-                this.updateExpBar();
-                
-                if (gameState.playerExperience >= 100) {
-                    this.levelUp();
-                    return;
-                }
-                
-                this.showPointsGained(points);
-                this.enemyTakeDamage();
-                
-                if (this.enemyHealth <= 0) {
-                    if (this.isBossFight) {
-                        this.bossFightCompleted();
-                    } else {
-                        this.enemyDefeated();
-                    }
-                } else {
-                    this.updateHealthBars();
-                    this.nextWord();
-                }
+            if (this.isPaused || this.isLevelingUp) return;
+            const key = event.key.toUpperCase();
+            if (key.length === 1 && key.match(/[A-Z]/)) {
+                this.handleLetterInput(key);
             }
-
-            wrongLetter() {
-                this.playerHealth -= 1;
-                this.playerTakeDamage();
-                
-                if (this.playerHealth <= 0) {
-                    this.scene.start("GameOver", { 
-                        winner: "Enemy", 
-                        enemiesDefeated: this.enemyCount - 1,
-                        finalScore: gameState.currentScore,
-                        personalBest: gameState.personalBest
-                    });
-                    return;
-                }
-                
-                this.updateHealthBars();
-                this.cameras.main.shake(100, 0.01);
-                this.typedText.setTint(0xff0000);
-                this.time.delayedCall(200, () => {
-                    this.typedText.clearTint();
-                });
-            }
-
-            levelUp() {
-                this.isLevelingUp = true;
-                gameState.playerExperience = 0;
-                gameState.playerLevel++;
-                this.levelText.setText(`LV: ${gameState.playerLevel}`);
-                this.updateExpBar();
-                
-                const levelUpText = this.add.text(400, 350, "You leveled up!", {
-                    fontSize: "28px",
-                    fill: "#ffd700",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold"
-                }).setOrigin(0.5);
-                
-                this.createUpgradeChoices();
-                
-                this.upgradeTimer = this.time.delayedCall(10000, () => {
-                    this.autoSelectUpgrade();
-                });
-                
-                this.tweens.add({
-                    targets: levelUpText,
-                    alpha: 0,
-                    duration: 2000,
-                    onComplete: () => levelUpText.destroy()
-                });
-            }
-
-            createUpgradeChoices() {
-                this.upgradeContainer = this.add.container(400, 400);
-                
-                const upgrades = [
-                    { text: "+2 damage", key: "1", type: "damage" },
-                    { text: "+2 health", key: "2", type: "health" },
-                    { text: "+2 second timer", key: "3", type: "timer" }
-                ];
-                
-                this.upgradeBoxes = [];
-                
-                for (let i = 0; i < upgrades.length; i++) {
-                    const x = (i - 1) * 200;
-                    
-                    const box = this.add.rectangle(x, 0, 160, 80, 0x8b4513);
-                    box.setStrokeStyle(4, 0x654321);
-                    
-                    const innerBox = this.add.rectangle(x, 0, 140, 60, 0xa0522d);
-                    
-                    const upgradeText = this.add.text(x, 0, upgrades[i].text, {
-                        fontSize: "16px",
-                        fill: "#000",
-                        fontFamily: "Courier New",
-                        fontStyle: "bold",
-                        align: "center"
-                    }).setOrigin(0.5);
-                    
-                    const keyText = this.add.text(x, -30, upgrades[i].key, {
-                        fontSize: "20px",
-                        fill: "#fff",
-                        fontFamily: "Courier New",
-                        fontStyle: "bold"
-                    }).setOrigin(0.5);
-                    
-                    this.upgradeContainer.add([box, innerBox, upgradeText, keyText]);
-                    this.upgradeBoxes.push({ box, type: upgrades[i].type, key: upgrades[i].key });
-                }
-                
-                this.upgradeInputHandler = (event) => {
-                    if (!this.isLevelingUp) return;
-                    
-                    const key = event.key;
-                    let selectedUpgrade = null;
-                    
-                    for (let upgrade of this.upgradeBoxes) {
-                        if (upgrade.key === key) {
-                            selectedUpgrade = upgrade.type;
-                            break;
-                        }
-                    }
-                    
-                    if (selectedUpgrade) {
-                        this.selectUpgrade(selectedUpgrade);
-                    }
-                };
-
-                this.input.keyboard.on("keydown", this.upgradeInputHandler);
-            }
-            
-            selectUpgrade(upgradeType) {
-                if (this.upgradeTimer) {
-                    this.upgradeTimer.destroy();
-                }
-                
-                switch (upgradeType) {
-                    case "damage":
-                        gameState.playerDamage += 2;
-                        this.showUpgradeAnimation("damage");
-                        break;
-                    case "health":
-                        gameState.maxPlayerHealth += 2;
-                        this.playerHealth += 2;
-                        this.showUpgradeAnimation("health");
-                        break;
-                    case "timer":
-                        gameState.timerBonus += 2;
-                        this.timeLimit = (this.isBossFight ? 60 : 5) + gameState.timerBonus;
-                        this.showUpgradeAnimation("timer");
-                        break;
-                }
-                
-                this.updateHealthBars();
-                
-                const upgradeText = this.add.text(400, 480, `Selected: ${upgradeType} upgrade!`, {
-                    fontSize: "18px",
-                    fill: "#27ae60",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold"
-                }).setOrigin(0.5);
-                
-                this.tweens.add({
-                    targets: upgradeText,
-                    alpha: 0,
-                    duration: 2000,
-                    onComplete: () => upgradeText.destroy()
-                });
-                
-                this.cleanupUpgradeUI();
-                
-                // FIX: Reset timer and continue the game after upgrade selection
-                this.timeLeft = this.timeLimit;
-                this.nextWord();
-            }
-
-            autoSelectUpgrade() {
-                const upgrades = ["damage", "health", "timer"];
-                const randomUpgrade = Phaser.Utils.Array.GetRandom(upgrades);
-                this.selectUpgrade(randomUpgrade);
-            }
-
-            showUpgradeAnimation(type) {
-                switch (type) {
-                    case "damage":
-                        for (let i = 0; i < 20; i++) {
-                            const particle = this.add.rectangle(
-                                150 + Math.random() * 20 - 10,
-                                520,
-                                3, 8,
-                                0x00ff00
-                            );
-                            
-                            this.tweens.add({
-                                targets: particle,
-                                y: 420,
-                                alpha: 0,
-                                duration: 1000 + Math.random() * 500,
-                                onComplete: () => particle.destroy()
-                            });
-                        }
-                        break;
-                    case "health":
-                        this.tweens.add({
-                            targets: [this.playerBarBg, this.playerBar],
-                            scaleY: 1.5,
-                            duration: 300,
-                            yoyo: true
-                        });
-                        break;
-                    case "timer":
-                        this.tweens.add({
-                            targets: [this.timerBg, this.timerBar],
-                            scaleX: 1.2,
-                            duration: 300,
-                            yoyo: true
-                        });
-                        break;
-                }
-            }
-
-            cleanupUpgradeUI() {
-                if (this.upgradeContainer) {
-                    this.upgradeContainer.destroy();
-                }
-                if (this.upgradeInputHandler) {
-                    this.input.keyboard.off("keydown", this.upgradeInputHandler);
-                }
-                this.isLevelingUp = false;
-            }
-
-            pauseGame() {
-                this.isPaused = true;
-                this.pauseOverlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.7);
-                this.pauseText = this.add.text(400, 300, "GAME PAUSED\nPress ESC to resume", {
-                    fontSize: "32px",
-                    fill: "#fff",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold",
-                    align: "center",
-                    stroke: "#000",
-                    strokeThickness: 4
-                }).setOrigin(0.5).setDepth(1000);
-            }
-
-            unpauseGame() {
-                if (this.pauseOverlay) this.pauseOverlay.destroy();
-                if (this.pauseText) this.pauseText.destroy();
-                this.startCountdown();
-            }
-
-            startCountdown() {
-                let count = 3;
-                const countdownText = this.add.text(400, 300, count.toString(), {
-                    fontSize: "72px",
-                    fill: "#fff",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold",
-                    stroke: "#000",
-                    strokeThickness: 6
-                }).setOrigin(0.5).setDepth(1000);
-
-                const countdownTimer = this.time.addEvent({
-                    delay: 1000,
-                    repeat: 2,
-                    callback: () => {
-                        count--;
-                        if (count > 0) {
-                            countdownText.setText(count.toString());
-                        } else {
-                            countdownText.destroy();
-                            this.isPaused = false;
-                        }
-                    }
-                });
-            }
-
-            playerAttack() {
-                this.tweens.add({
-                    targets: this.player,
-                    scaleX: 2.2,
-                    scaleY: 2.2,
-                    duration: 150,
-                    yoyo: true,
-                    ease: 'Power2'
-                });
-            }
-
-            showPointsGained(points) {
-                const pointsText = this.add.text(400, 300, `+${points}`, {
-                    fontSize: "24px",
-                    fill: points === 200 ? "#e74c3c" : "#27ae60",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold"
-                }).setOrigin(0.5);
-                
-                this.tweens.add({
-                    targets: pointsText,
-                    y: 250,
-                    alpha: 0,
-                    duration: 1000,
-                    ease: 'Power2',
-                    onComplete: () => pointsText.destroy()
-                });
-            }
-
-            enemyTakeDamage() {
-                this.tweens.add({
-                    targets: this.enemy,
-                    tint: 0xff0000,
-                    duration: 200,
-                    yoyo: true,
-                    onComplete: () => this.enemy.clearTint()
-                });
-            }
-
-            playerTakeDamage() {
-                this.tweens.add({
-                    targets: this.player,
-                    tint: 0xff0000,
-                    duration: 300,
-                    yoyo: true,
-                    onComplete: () => this.player.clearTint()
-                });
-            }
-
-            enemyDefeated() {
-                this.tweens.add({
-                    targets: this.enemy,
-                    alpha: 0,
-                    scaleX: 0,
-                    scaleY: 0,
-                    rotation: Math.PI * 2,
-                    duration: 500,
-                    onComplete: () => {
-                        this.progressBarEnemies++;
-                        this.updateProgressBar();
-                        
-                        if (this.progressBarEnemies >= this.maxProgressEnemies) {
-                            this.startBossFight();
-                        } else {
-                            this.spawnNewEnemy();
-                        }
-                    }
-                });
-            }
-
-            updateProgressBar() {
-                for (let i = 0; i < this.progressBarEnemies && i < this.maxProgressEnemies; i++) {
-                    if (this.progressSkulls[i]) {
-                        this.progressSkulls[i].setTint(0x888888); // Gray for defeated
-                    }
-                }
-            }
-
-            startBossFight() {
-                this.isBossFight = true;
-                this.timeLimit = 45; // Boss fight timer (no bonus)
-                this.timeLeft = this.timeLimit;
-                this.enemyHealth = 30;
-                
-                this.enemy.setTexture('boss');
-                this.enemy.setScale(2.5);
-                
-                this.enemy.setAlpha(1);
-                this.enemy.setScale(0);
-                this.tweens.add({
-                    targets: this.enemy,
-                    scaleX: 2.5,
-                    scaleY: 2.5,
-                    duration: 1000,
-                    ease: 'Back.easeOut',
-                    onComplete: () => {
-                        this.updateHealthBars();
-                        this.nextWord();
-                        
-                        const bossText = this.add.text(400, 480, "BOSS FIGHT!", {
-                            fontSize: "24px",
-                            fill: "#ff0000",
-                            fontFamily: "Courier New",
-                            fontStyle: "bold"
-                        }).setOrigin(0.5);
-                        
-                        this.tweens.add({
-                            targets: bossText,
-                            alpha: 0,
-                            duration: 3000,
-                            onComplete: () => bossText.destroy()
-                        });
-                    }
-                });
-            }
-
-            bossFightCompleted() {
-                gameState.currentScore += 10000;
-                this.scoreText.setText(gameState.currentScore.toString());
-                
-                const bonusText = this.add.text(400, 280, "+10000 BOSS DEFEATED!", {
-                    fontSize: "20px",
-                    fill: "#ffd700",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold"
-                }).setOrigin(0.5);
-                
-                this.tweens.add({
-                    targets: bonusText,
-                    y: 230,
-                    alpha: 0,
-                    duration: 2000,
-                    ease: 'Power2',
-                    onComplete: () => bonusText.destroy()
-                });
-                
-                this.progressBarEnemies = 0;
-                this.isBossFight = false;
-                this.timeLimit = 5 + gameState.timerBonus;
-                
-                for (let i = 0; i < this.maxProgressEnemies; i++) {
-                    if (this.progressSkulls[i]) {
-                        if (i === this.maxProgressEnemies - 1) {
-                            this.progressSkulls[i].setTint(0xff0000); // Boss skull back to red
-                        } else {
-                            this.progressSkulls[i].setTint(0x000000); // Regular skulls back to black
-                        }
-                    }
-                }
-                
-                this.spawnNewEnemy();
-            }
-
-            spawnNewEnemy() {
-                this.enemyCount++;
-                this.enemyHealth = this.isBossFight ? 30 : 10;
-                
-                this.enemy.setTexture(this.isBossFight ? 'boss' : 'enemy');
-                const scale = this.isBossFight ? 2.5 : 2;
-                
-                this.enemy.setAlpha(1);
-                this.enemy.setScale(0);
-                this.enemy.setRotation(0);
-                
-                this.tweens.add({
-                    targets: this.enemy,
-                    scaleX: scale,
-                    scaleY: scale,
-                    duration: 500,
-                    ease: 'Back.easeOut',
-                    onComplete: () => {
-                        this.updateHealthBars();
-                        this.nextWord();
-                    }
-                });
-            }
-
-            updateWordDisplay() {
-                this.letterSprites.forEach(sprite => sprite.destroy());
-                this.letterSprites = [];
-
-                const letterWidth = 40;
-                const startX = -(gameState.currentWord.length * letterWidth) / 2 + letterWidth / 2;
-
-                for (let i = 0; i < gameState.currentWord.length; i++) {
-                    const letter = gameState.currentWord[i];
-                    const x = startX + i * letterWidth;
-                    
-                    let color = "#ffffff"; // white for untyped
-                    if (i < gameState.typedCorrectly) {
-                        color = "#2c3e50"; // dark for completed
-                    } else if (i === gameState.typedCorrectly) {
-                        color = "#f39c12"; // orange for current letter
-                    }
-                    
-                    const letterText = this.add.text(x, 0, letter, {
-                        fontSize: "36px",
-                        fill: color,
-                        fontFamily: "Courier New",
-                        fontStyle: "bold"
-                    }).setOrigin(0.5);
-
-                    const bg = this.add.rectangle(x, 0, 35, 45, 0x34495e, 0.7);
-                    bg.setStrokeStyle(2, i < gameState.typedCorrectly ? 0x27ae60 : 0x7f8c8d);
-                    
-                    this.wordContainer.add([bg, letterText]);
-                    this.letterSprites.push(letterText);
-                    this.letterSprites.push(bg);
-                }
-            }
-
-            nextWord() {
-                const useIntermediate = Math.random() < 0.4;
-                const wordPool = useIntermediate ? intermediateWords : easyWords;
-                gameState.isCurrentWordIntermediate = useIntermediate;
-                
-                let newWord;
-                do {
-                    newWord = Phaser.Utils.Array.GetRandom(wordPool);
-                } while (newWord === gameState.lastWord);
-                
-                gameState.lastWord = newWord;
-                gameState.currentWord = newWord;
-                gameState.typedCorrectly = 0;
-                
-                this.typedText.setText("");
+            if (event.key === "Backspace" && gameState.typedCorrectly > 0) {
+                gameState.typedCorrectly--;
                 this.updateWordDisplay();
-                
-                if (!this.isBossFight) {
-                    this.timeLeft = this.timeLimit;
-                }
+                this.typedText.setText(gameState.currentWord.substring(0, gameState.typedCorrectly));
             }
+        });
+    }
 
-            updateHealthBars() {
-                const maxHealth = this.isBossFight ? 30 : 10;
-                this.playerBar.width = (this.playerHealth / gameState.maxPlayerHealth) * 140;
-                this.enemyBar.width = (this.enemyHealth / maxHealth) * 140;
-                
-                this.playerHealthText.setText(`${this.playerHealth}/${gameState.maxPlayerHealth}`);
-                
-                if (this.playerHealth <= gameState.maxPlayerHealth * 0.3) {
-                    this.playerBar.fillColor = 0xe74c3c;
-                } else if (this.playerHealth <= gameState.maxPlayerHealth * 0.6) {
-                    this.playerBar.fillColor = 0xf39c12;
-                } else {
-                    this.playerBar.fillColor = 0x27ae60;
-                }
-                
-                if (this.isBossFight) {
-                    this.enemyBar.fillColor = 0x8b0000;
-                }
+    handleLetterInput(key) {
+        if (key === gameState.currentWord[gameState.typedCorrectly]) {
+            gameState.typedCorrectly++;
+            this.updateWordDisplay();
+            this.typedText.setText(gameState.currentWord.substring(0, gameState.typedCorrectly));
+            this.playerAttack();
+            if (gameState.typedCorrectly === gameState.currentWord.length) {
+                this.wordCompleted();
             }
-
-            updateExpBar() {
-                const width = (gameState.playerExperience / 100) * 140;
-                this.expBar.width = width;
-            }
-
-            update(time, delta) {
-                if (this.isPaused || this.isLevelingUp) return;
-                
-                if (!this.isBossFight || this.timeLeft > 0) {
-                    this.timeLeft -= delta / 1000;
-                }
-                
-                if (this.timeLeft <= 0 && !this.isBossFight) {
-                    this.playerHealth -= 2;
-                    this.playerTakeDamage();
-                    
-                    if (this.playerHealth <= 0) {
-                        this.scene.start("GameOver", { 
-                            winner: "Enemy", 
-                            enemiesDefeated: this.enemyCount - 1,
-                            finalScore: gameState.currentScore,
-                            personalBest: gameState.personalBest
-                        });
-                        return;
-                    }
-                    this.updateHealthBars();
-                    this.nextWord();
-                } else if (this.timeLeft <= 0 && this.isBossFight) {
-                    this.scene.start("GameOver", { 
-                        winner: "Enemy", 
-                        enemiesDefeated: this.enemyCount - 1,
-                        finalScore: gameState.currentScore,
-                        personalBest: gameState.personalBest
-                    });
-                    return;
-                }
-
-                const width = Math.max((this.timeLeft / this.timeLimit) * 400, 0);
-                this.timerBar.width = width;
-                
-                if (this.timeLeft < 5) {
-                    this.timerBar.fillColor = 0xff0000;
-                } else if (this.timeLeft < 10) {
-                    this.timerBar.fillColor = 0xff9500;
-                } else {
-                    this.timerBar.fillColor = 0x00ff41;
-                }
-            }
+        } else {
+            this.wrongLetter();
         }
+    }
 
-        class GameOver extends Phaser.Scene {
-            constructor() {
-                super({ key: "GameOver" });
-            }
-
-            init(data) {
-                this.winner = data.winner;
-                this.enemiesDefeated = data.enemiesDefeated || 0;
-                this.finalScore = data.finalScore || 0;
-                this.personalBest = data.personalBest || 0;
-                
-                if (this.finalScore > this.personalBest) {
-                    this.personalBest = this.finalScore;
-                    gameState.personalBest = this.personalBest;
-                }
-            }
-
-            create() {
-                this.cameras.main.setBackgroundColor('#2d5016');
-                
-                this.add.text(400, 200, `${this.winner} Wins!`, {
-                    fontSize: "48px",
-                    fill: this.winner === "Player" ? "#27ae60" : "#e74c3c",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold"
-                }).setOrigin(0.5);
-
-                this.add.text(400, 280, `Personal Best: ${this.personalBest}`, {
-                    fontSize: "24px",
-                    fill: "#f39c12",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold"
-                }).setOrigin(0.5);
-
-                this.add.text(400, 320, `Score: ${this.finalScore}`, {
-                    fontSize: "24px",
-                    fill: this.finalScore >= this.personalBest ? "#27ae60" : "#e74c3c",
-                    fontFamily: "Courier New",
-                    fontStyle: "bold"
-                }).setOrigin(0.5);
-
-                if (this.finalScore > 0 && this.finalScore >= this.personalBest) {
-                    const newRecordText = this.add.text(400, 360, "NEW RECORD!", {
-                        fontSize: "18px",
-                        fill: "#27ae60",
-                        fontFamily: "Courier New",
-                        fontStyle: "bold"
-                    }).setOrigin(0.5);
-                    
-                    this.tweens.add({
-                        targets: newRecordText,
-                        alpha: 0.3,
-                        duration: 500,
-                        yoyo: true,
-                        repeat: -1
-                    });
-                }
-
-                const restartText = this.add.text(400, 420, "Press SPACE to restart", {
-                    fontSize: "20px",
-                    fill: "#bdc3c7",
-                    fontFamily: "Courier New"
-                }).setOrigin(0.5);
-
-                this.tweens.add({
-                    targets: restartText,
-                    alpha: 0.3,
-                    duration: 800,
-                    yoyo: true,
-                    repeat: -1
-                });
-
-                this.input.keyboard.once("keydown-SPACE", () => {
-                    // Reset game state
-                    gameState.typedCorrectly = 0;
-                    gameState.currentScore = 0;
-                    this.scene.start("TypingGame");
-                });
-            }
+    wordCompleted() {
+        this.enemyHealth -= gameState.playerDamage;
+        const points = gameState.isCurrentWordIntermediate ? 200 : 100;
+        const expGain = gameState.isCurrentWordIntermediate ? 20 : 10;
+        gameState.currentScore += points;
+        gameState.playerExperience += expGain;
+        this.scoreText.setText(gameState.currentScore.toString());
+        this.updateExpBar();
+        if (gameState.playerExperience >= 100) {
+            this.levelUp();
+            return;
         }
+        this.showPointsGained(points);
+        this.enemyTakeDamage();
+        if (this.enemyHealth <= 0) {
+            if (this.isBossFight) {
+                this.bossFightCompleted();
+            } else {
+                this.enemyDefeated();
+            }
+        } else {
+            this.updateHealthBars();
+            this.nextWord();
+        }
+    }
 
-        // Game configuration
-        const config = {
-            type: Phaser.AUTO,
-            width: 800,
-            height: 600,
-            scene: [TypingGame, GameOver],
-            backgroundColor: "#2d5016",
-            physics: {
-                default: 'arcade',
-                arcade: {
-                    gravity: { y: 0 }
+    wrongLetter() {
+        this.playerHealth -= 1;
+        this.playerTakeDamage();
+        if (this.playerHealth <= 0) {
+            this.scene.restart();
+            return;
+        }
+        this.updateHealthBars();
+        this.cameras.main.shake(100, 0.01);
+        this.typedText.setTint(0xff0000);
+        this.time.delayedCall(200, () => {
+            this.typedText.clearTint();
+        });
+    }
+
+    levelUp() {
+        this.isLevelingUp = true;
+        gameState.playerExperience = 0;
+        gameState.playerLevel++;
+        this.levelText.setText(`LV: ${gameState.playerLevel}`);
+        this.updateExpBar();
+        const levelUpText = this.add.text(400, 350, "You leveled up!", { fontSize: "28px", fill: "#ffd700", fontFamily: "Courier New", fontStyle: "bold" }).setOrigin(0.5);
+        this.createUpgradeChoices();
+        this.upgradeTimer = this.time.delayedCall(10000, () => {
+            this.autoSelectUpgrade();
+        });
+        this.tweens.add({
+            targets: levelUpText,
+            alpha: 0,
+            duration: 2000,
+            onComplete: () => levelUpText.destroy()
+        });
+    }
+
+    createUpgradeChoices() {
+        this.upgradeContainer = this.add.container(400, 400);
+        const upgrades = [
+            { text: "+2 damage", key: "1", type: "damage" },
+            { text: "+2 health", key: "2", type: "health" },
+            { text: "+2 second timer", key: "3", type: "timer" }
+        ];
+        this.upgradeBoxes = [];
+        for (let i = 0; i < upgrades.length; i++) {
+            const x = (i - 1) * 200;
+            const box = this.add.rectangle(x, 0, 160, 80, 0x8b4513);
+            box.setStrokeStyle(4, 0x654321);
+            const innerBox = this.add.rectangle(x, 0, 140, 60, 0xa0522d);
+            const upgradeText = this.add.text(x, 0, upgrades[i].text, { fontSize: "16px", fill: "#000", fontFamily: "Courier New", fontStyle: "bold", align: "center" }).setOrigin(0.5);
+            const keyText = this.add.text(x, -30, upgrades[i].key, { fontSize: "20px", fill: "#fff", fontFamily: "Courier New", fontStyle: "bold" }).setOrigin(0.5);
+            this.upgradeContainer.add([box, innerBox, upgradeText, keyText]);
+            this.upgradeBoxes.push({ box, type: upgrades[i].type, key: upgrades[i].key });
+        }
+        this.upgradeInputHandler = (event) => {
+            if (!this.isLevelingUp) return;
+            const key = event.key;
+            let selectedUpgrade = null;
+            for (let upgrade of this.upgradeBoxes) {
+                if (upgrade.key === key) {
+                    selectedUpgrade = upgrade.type;
+                    break;
                 }
+            }
+            if (selectedUpgrade) {
+                this.selectUpgrade(selectedUpgrade);
             }
         };
+        this.input.keyboard.on("keydown", this.upgradeInputHandler);
+    }
 
-        // Start the game
-        new Phaser.Game(config);
-    </script>
+    selectUpgrade(upgradeType) {
+        if (this.upgradeTimer) {
+            this.upgradeTimer.destroy();
+        }
+        switch (upgradeType) {
+            case "damage":
+                gameState.playerDamage += 2;
+                this.showUpgradeAnimation("damage");
+                break;
+            case "health":
+                gameState.maxPlayerHealth += 2;
+                this.playerHealth += 2;
+                this.showUpgradeAnimation("health");
+                break;
+            case "timer":
+                gameState.timerBonus += 2;
+                this.timeLimit = (this.isBossFight ? 60 : 5) + gameState.timerBonus;
+                this.showUpgradeAnimation("timer");
+                break;
+        }
+        this.updateHealthBars();
+        const upgradeText = this.add.text(400, 480, `Selected: ${upgradeType} upgrade!`, { fontSize: "18px", fill: "#27ae60", fontFamily: "Courier New", fontStyle: "bold" }).setOrigin(0.5);
+        this.tweens.add({
+            targets: upgradeText,
+            alpha: 0,
+            duration: 2000,
+            onComplete: () => upgradeText.destroy()
+        });
+        this.cleanupUpgradeUI();
+        this.timeLeft = this.timeLimit;
+        this.nextWord();
+    }
+
+    autoSelectUpgrade() {
+        const upgrades = ["damage", "health", "timer"];
+        const randomUpgrade = Phaser.Utils.Array.GetRandom(upgrades);
+        this.selectUpgrade(randomUpgrade);
+    }
+
+    showUpgradeAnimation(type) {
+        switch (type) {
+            case "damage":
+                for (let i = 0; i < 20; i++) {
+                    const particle = this.add.rectangle(
+                        150 + Math.random() * 20 - 10,
+                        520,
+                        3, 8,
+                        0x00ff00
+                    );
+                    this.tweens.add({
+                        targets: particle,
+                        y: 420,
+                        alpha: 0,
+                        duration: 1000 + Math.random() * 500,
+                        onComplete: () => particle.destroy()
+                    });
+                }
+                break;
+            case "health":
+                this.tweens.add({
+                    targets: [this.playerBarBg, this.playerBar],
+                    scaleY: 1.5,
+                    duration: 300,
+                    yoyo: true
+                });
+                break;
+            case "timer":
+                this.tweens.add({
+                    targets: [this.timerBg, this.timerBar],
+                    scaleX: 1.2,
+                    duration: 300,
+                    yoyo: true
+                });
+                break;
+        }
+    }
+
+    cleanupUpgradeUI() {
+        if (this.upgradeContainer) {
+            this.upgradeContainer.destroy();
+        }
+        if (this.upgradeInputHandler) {
+            this.input.keyboard.off("keydown", this.upgradeInputHandler);
+        }
+        this.isLevelingUp = false;
+    }
+
+    pauseGame() {
+        this.isPaused = true;
+        this.pauseOverlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.7);
+        this.pauseText = this.add.text(400, 300, "GAME PAUSED\nPress ESC to resume", { fontSize: "32px", fill: "#fff", fontFamily: "Courier New", fontStyle: "bold", align: "center", stroke: "#000", strokeThickness: 4 }).setOrigin(0.5).setDepth(1000);
+    }
+
+    unpauseGame() {
+        if (this.pauseOverlay) this.pauseOverlay.destroy();
+        if (this.pauseText) this.pauseText.destroy();
+        this.startCountdown();
+    }
+
+    startCountdown() {
+        let count = 3;
+        const countdownText = this.add.text(400, 300, count.toString(), { fontSize: "72px", fill: "#fff", fontFamily: "Courier New", fontStyle: "bold", stroke: "#000", strokeThickness: 6 }).setOrigin(0.5).setDepth(1000);
+        const countdownTimer = this.time.addEvent({
+            delay: 1000,
+            repeat: 2,
+            callback: () => {
+                count--;
+                if (count > 0) {
+                    countdownText.setText(count.toString());
+                } else {
+                    countdownText.destroy();
+                    this.isPaused = false;
+                }
+            }
+        });
+    }
+
+    playerAttack() {
+        this.tweens.add({
+            targets: this.player,
+            scaleX: 2.2,
+            scaleY: 2.2,
+            duration: 150,
+            yoyo: true,
+            ease: 'Power2'
+        });
+    }
+
+    showPointsGained(points) {
+        const pointsText = this.add.text(400, 300, `+${points}`, { fontSize: "24px", fill: points === 200 ? "#e74c3c" : "#27ae60", fontFamily: "Courier New", fontStyle: "bold" }).setOrigin(0.5);
+        this.tweens.add({
+            targets: pointsText,
+            y: 250,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => pointsText.destroy()
+        });
+    }
+
+    enemyTakeDamage() {
+        this.tweens.add({
+            targets: this.enemy,
+            tint: 0xff0000,
+            duration: 200,
+            yoyo: true,
+            onComplete: () => this.enemy.clearTint()
+        });
+    }
+
+    playerTakeDamage() {
+        this.tweens.add({
+            targets: this.player,
+            tint: 0xff0000,
+            duration: 300,
+            yoyo: true,
+            onComplete: () => this.player.clearTint()
+        });
+    }
+
+    enemyDefeated() {
+        this.tweens.add({
+            targets: this.enemy,
+            alpha: 0,
+            scaleX: 0,
+            scaleY: 0,
+            rotation: Math.PI * 2,
+            duration: 500,
+            onComplete: () => {
+                this.progressBarEnemies++;
+                this.updateProgressBar();
+                if (this.progressBarEnemies >= this.maxProgressEnemies) {
+                    this.startBossFight();
+                } else {
+                    this.spawnNewEnemy();
+                }
+            }
+        });
+    }
+
+    updateProgressBar() {
+        for (let i = 0; i < this.progressBarEnemies && i < this.maxProgressEnemies; i++) {
+            if (this.progressSkulls[i]) {
+                this.progressSkulls[i].setTint(0x888888);
+            }
+        }
+    }
+
+    startBossFight() {
+        this.isBossFight = true;
+        this.timeLimit = 45;
+        this.timeLeft = this.timeLimit;
+        this.enemyHealth = 30;
+        this.enemy.setTexture('boss');
+        this.enemy.setScale(2.5);
+        this.enemy.setAlpha(1);
+        this.enemy.setScale(0);
+        this.tweens.add({
+            targets: this.enemy,
+            scaleX: 2.5,
+            scaleY: 2.5,
+            duration: 1000,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                this.updateHealthBars();
+                this.nextWord();
+                const bossText = this.add.text(400, 480, "BOSS FIGHT!", { fontSize: "24px", fill: "#ff0000", fontFamily: "Courier New", fontStyle: "bold" }).setOrigin(0.5);
+                this.tweens.add({
+                    targets: bossText,
+                    alpha: 0,
+                    duration: 3000,
+                    onComplete: () => bossText.destroy()
+                });
+            }
+        });
+    }
+
+    bossFightCompleted() {
+        gameState.currentScore += 10000;
+        this.scoreText.setText(gameState.currentScore.toString());
+        const bonusText = this.add.text(400, 280, "+10000 BOSS DEFEATED!", { fontSize: "20px", fill: "#ffd700", fontFamily: "Courier New", fontStyle: "bold" }).setOrigin(0.5);
+        this.tweens.add({
+            targets: bonusText,
+            y: 230,
+            alpha: 0,
+            duration: 2000,
+            ease: 'Power2',
+            onComplete: () => bonusText.destroy()
+        });
+        this.progressBarEnemies = 0;
+        this.isBossFight = false;
+        this.timeLimit = 5 + gameState.timerBonus;
+        for (let i = 0; i < this.maxProgressEnemies; i++) {
+            if (this.progressSkulls[i]) {
+                if (i === this.maxProgressEnemies - 1) {
+                    this.progressSkulls[i].setTint(0xff0000);
+                } else {
+                    this.progressSkulls[i].setTint(0x000000);
+                }
+            }
+        }
+        this.spawnNewEnemy();
+    }
+
+    spawnNewEnemy() {
+        this.enemyCount++;
+        this.enemyHealth = this.isBossFight ? 30 : 10;
+        this.enemy.setTexture(this.isBossFight ? 'boss' : 'slime');
+        const scale = this.isBossFight ? 2.5 : 2;
+        this.enemy.setAlpha(1);
+        this.enemy.setScale(0);
+        this.enemy.setRotation(0);
+        this.tweens.add({
+            targets: this.enemy,
+            scaleX: scale,
+            scaleY: scale,
+            duration: 500,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                this.updateHealthBars();
+                this.nextWord();
+                this.enemy.play(this.isBossFight ? undefined : 'slime_idle');
+            }
+        });
+    }
+
+    updateHealthBars() {
+        this.playerBar.width = 140 * (this.playerHealth / gameState.maxPlayerHealth);
+        this.playerHealthText.setText(`${this.playerHealth}/${gameState.maxPlayerHealth}`);
+        this.enemyBar.width = 140 * (this.enemyHealth / (this.isBossFight ? 30 : 10));
+    }
+
+    updateExpBar() {
+        this.expBar.width = 140 * (gameState.playerExperience / 100);
+    }
+
+    nextWord() {
+        gameState.lastWord = gameState.currentWord;
+        let word;
+        if (this.isBossFight || Math.random() < 0.4) {
+            word = Phaser.Utils.Array.GetRandom(intermediateWords);
+            gameState.isCurrentWordIntermediate = true;
+        } else {
+            word = Phaser.Utils.Array.GetRandom(easyWords);
+            gameState.isCurrentWordIntermediate = false;
+        }
+        gameState.currentWord = word;
+        gameState.typedCorrectly = 0;
+        this.updateWordDisplay();
+        this.typedText.setText("");
+    }
+
+    updateWordDisplay() {
+        this.wordContainer.removeAll(true);
+        this.letterSprites = [];
+        let x = 0;
+        for (let i = 0; i < gameState.currentWord.length; i++) {
+            let color = i < gameState.typedCorrectly ? "#00ff41" : "#fff";
+            let letter = this.add.text(x, 0, gameState.currentWord[i], { fontSize: "32px", fill: color, fontFamily: "Courier New", fontStyle: "bold" }).setOrigin(0.5);
+            this.wordContainer.add(letter);
+            this.letterSprites.push(letter);
+            x += 32;
+        }
+        this.wordContainer.x = 400;
+        this.wordContainer.y = 200;
+        this.wordContainer.setScale(1 + 0.05 * Math.min(gameState.currentWord.length, 10));
+    }
+}
+
+// Phaser game config
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    backgroundColor: "#222",
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 },
+            debug: false
+        }
+    },
+    scene: TypingGame
+};
+
+window.onload = function() {
+    new Phaser.Game(config);
+}
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
