@@ -1013,16 +1013,13 @@ const gameState = {
             height: 600,
             scene: [TypingGame, GameOver],
             backgroundColor: "#2d5016",
-                        physics: {
-                                    default: 'arcade',
-                        arcade: {
-                            gravity: { y: 0 }
-                        }
-                    }
-                };
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 }
+                }
+            }
+        };
 
-                // Start the game
-         window.addEventListener('DOMContentLoaded', function() {
-            new Phaser.Game(config);
-            });
-
+        // Start the game
+        new Phaser.Game(config);
