@@ -72,22 +72,11 @@
 
             preload() {
                 this.createSprites();
+                this.load.image('knight', 'knight.jpg');
+                this.load.image('slime', 'slime.png');
             }
 
             createSprites() {
-                // Create knight sprite (player)
-                const knightGraphics = this.add.graphics();
-                knightGraphics.fillStyle(0x4a90e2);
-                knightGraphics.fillRect(0, 0, 32, 40);
-                knightGraphics.fillStyle(0x7f8c8d);
-                knightGraphics.fillRect(8, 0, 16, 12); // helmet
-                knightGraphics.fillStyle(0xf39c12);
-                knightGraphics.fillRect(4, 12, 24, 8); // chest
-                knightGraphics.fillStyle(0x34495e);
-                knightGraphics.fillRect(12, 20, 8, 20); // body
-                knightGraphics.generateTexture('knight', 32, 40);
-                knightGraphics.destroy();
-
                 // Create boss sprite
                 const bossGraphics = this.add.graphics();
                 bossGraphics.fillStyle(0x8b0000);
@@ -129,20 +118,6 @@
                 skullGraphics.generateTexture('skull', 24, 24);
                 skullGraphics.destroy();
 
-                // Create enemy sprite
-                const enemyGraphics = this.add.graphics();
-                enemyGraphics.fillStyle(0x27ae60);
-                enemyGraphics.fillRect(0, 0, 28, 36);
-                enemyGraphics.fillStyle(0x2c3e50);
-                enemyGraphics.fillRect(6, 0, 16, 10); // head
-                enemyGraphics.fillStyle(0xe74c3c);
-                enemyGraphics.fillRect(8, 2, 4, 4); // eyes
-                enemyGraphics.fillRect(16, 2, 4, 4);
-                enemyGraphics.fillStyle(0x8b4513);
-                enemyGraphics.fillRect(4, 10, 20, 26); // body
-                enemyGraphics.generateTexture('enemy', 28, 36);
-                enemyGraphics.destroy();
-
                 // Create tree sprite
                 const treeGraphics = this.add.graphics();
                 treeGraphics.fillStyle(0x8b4513);
@@ -151,6 +126,215 @@
                 treeGraphics.fillCircle(20, 20, 15);
                 treeGraphics.generateTexture('tree', 40, 50);
                 treeGraphics.destroy();
+
+                this.createKnightAnimations();
+                this.createSlimeAnimations();
+    
+                // Create the knight sprite (player)
+                this.knight = this.add.sprite(400, 300, 'knight');
+                this.knight.setScale(3); // Scale up for better visibility since it's pixelated
+    
+                // Create slime sprites (enemies)
+                this.slimes = this.physics.add.group();
+                this.createSlime(200, 200);
+                this.createSlime(600, 400);
+    
+                // Start animations
+                this.knight.play('knight_idle');
+    
+                // Set up physics if needed
+                this.physics.add.existing(this.knight);
+                this.knight.body.setCollideWorldBounds(true);
+                }
+
+                createKnightAnimations() {
+                    if (!this.anims.exists('knight_idle')) {
+                    // Create texture variations for knight animation frames
+                    this.createKnightFrames();
+        
+                    // Create the idle/breathing animation for knight
+                    this.anims.create({
+                        key: 'knight_idle',
+                        frames: [
+                            { key: 'knight_frame_1' },
+                            { key: 'knight_frame_2' },
+                            { key: 'knight_frame_3' },
+                            { key: 'knight_frame_4' }
+                        ],
+                        frameRate: 2, // Slow animation for breathing effect
+                        repeat: -1 // Loop forever
+                    });
+        
+                    // Create walking animation (you can expand this later)
+                    this.anims.create({
+                        key: 'knight_walk',
+                        frames: [
+                            { key: 'knight_frame_1' },
+                            { key: 'knight_frame_3' },
+                            { key: 'knight_frame_1' },
+                            { key: 'knight_frame_2' }
+                        ],
+                        frameRate: 4,
+                        repeat: -1
+                });
+            }
+        }
+
+        createSlimeAnimations() {
+            if (!this.anims.exists('slime_idle')) {
+            // Create texture variations for slime animation frames
+            this.createSlimeFrames();
+        
+            // Create the bouncing/breathing animation for slime
+            this.anims.create({
+                key: 'slime_idle',
+                frames: [
+                    { key: 'slime_frame_1' },
+                    { key: 'slime_frame_2' },
+                    { key: 'slime_frame_3' },
+                    { key: 'slime_frame_4' }
+                ],
+                frameRate: 3, // Slightly faster than knight for bouncy feel
+                repeat: -1
+            });
+        
+            // Create slime bounce animation
+            this.anims.create({
+                key: 'slime_bounce',
+                frames: [
+                    { key: 'slime_frame_1' },
+                    { key: 'slime_frame_4' },
+                    { key: 'slime_frame_3' },
+                    { key: 'slime_frame_1' }
+                ],
+                frameRate: 6,
+                repeat: -1
+            });
+        }
+    }
+
+    createKnightFrames() {
+        const baseTexture = this.textures.get('knight');
+        const baseImage = baseTexture.getSourceImage();
+    
+        // Create canvas for frame manipulation
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = baseImage.width;
+        canvas.height = baseImage.height;
+    
+        // Disable smoothing for pixel-perfect rendering
+        ctx.imageSmoothingEnabled = false;
+    
+        // Frame 1 - Original knight
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(baseImage, 0, 0);
+        this.textures.addCanvas('knight_frame_1', canvas);
+    
+        // Frame 2 - Sword slightly up (shift upper 60% up by 1 pixel)
+        const newCanvas2 = document.createElement('canvas');
+        const ctx2 = newCanvas2.getContext('2d');
+        newCanvas2.width = canvas.width;
+        newCanvas2.height = canvas.height;
+        ctx2.imageSmoothingEnabled = false;
+    
+        // Draw lower part normally
+        ctx2.drawImage(baseImage, 0, Math.floor(canvas.height * 0.6), canvas.width, Math.floor(canvas.height * 0.4), 
+                       0, Math.floor(canvas.height * 0.6), canvas.width, Math.floor(canvas.height * 0.4));
+        // Draw upper part (sword area) shifted up 1 pixel
+        ctx2.drawImage(baseImage, 0, 0, canvas.width, Math.floor(canvas.height * 0.6), 
+                       0, -1, canvas.width, Math.floor(canvas.height * 0.6));
+        this.textures.addCanvas('knight_frame_2', newCanvas2);
+    
+        // Frame 3 - Knight body bob down 1 pixel
+        const newCanvas3 = document.createElement('canvas');
+        const ctx3 = newCanvas3.getContext('2d');
+        newCanvas3.width = canvas.width;
+        newCanvas3.height = canvas.height;
+        ctx3.imageSmoothingEnabled = false;
+        ctx3.drawImage(baseImage, 0, 1);
+        this.textures.addCanvas('knight_frame_3', newCanvas3);
+    
+        // Frame 4 - Back to normal (same as frame 1)
+        const newCanvas4 = document.createElement('canvas');
+        const ctx4 = newCanvas4.getContext('2d');
+        newCanvas4.width = canvas.width;
+        newCanvas4.height = canvas.height;
+        ctx4.imageSmoothingEnabled = false;
+        ctx4.drawImage(baseImage, 0, 0);
+        this.textures.addCanvas('knight_frame_4', newCanvas4);
+    }
+
+    createSlimeFrames() {
+        const baseTexture = this.textures.get('slime');
+        const baseImage = baseTexture.getSourceImage();
+    
+        // Create canvas for frame manipulation
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = baseImage.width;
+        canvas.height = baseImage.height;
+    
+        // Disable smoothing for pixel-perfect rendering
+        ctx.imageSmoothingEnabled = false;
+    
+        // Frame 1 - Original slime
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(baseImage, 0, 0);
+        this.textures.addCanvas('slime_frame_1', canvas);
+    
+        // Frame 2 - Slime slightly compressed (squash effect)
+        const newCanvas2 = document.createElement('canvas');
+        const ctx2 = newCanvas2.getContext('2d');
+        newCanvas2.width = canvas.width;
+        newCanvas2.height = canvas.height;
+        ctx2.imageSmoothingEnabled = false;
+        // Draw slime slightly wider and shorter
+        ctx2.drawImage(baseImage, -1, 1, canvas.width + 2, canvas.height - 1);
+        this.textures.addCanvas('slime_frame_2', newCanvas2);
+    
+        // Frame 3 - Slime stretched vertically (stretch effect)
+        const newCanvas3 = document.createElement('canvas');
+        const ctx3 = newCanvas3.getContext('2d');
+        newCanvas3.width = canvas.width;
+        newCanvas3.height = canvas.height;
+        ctx3.imageSmoothingEnabled = false;
+        // Draw slime taller and narrower
+        ctx3.drawImage(baseImage, 1, -1, canvas.width - 2, canvas.height + 2);
+        this.textures.addCanvas('slime_frame_3', newCanvas3);
+    
+        // Frame 4 - Back to original with slight offset for bounce
+        const newCanvas4 = document.createElement('canvas');
+        const ctx4 = newCanvas4.getContext('2d');
+        newCanvas4.width = canvas.width;
+        newCanvas4.height = canvas.height;
+        ctx4.imageSmoothingEnabled = false;
+        ctx4.drawImage(baseImage, 0, -1); // Slight upward offset
+        this.textures.addCanvas('slime_frame_4', newCanvas4);
+    }
+
+    createSlime(x, y) {
+        const slime = this.physics.add.sprite(x, y, 'slime');
+        slime.setScale(2); // Scale up for visibility
+        slime.play('slime_idle');
+    
+        // Add some random movement
+        slime.setVelocity(
+            Phaser.Math.Between(-50, 50),
+            Phaser.Math.Between(-50, 50)
+        );
+    
+        // Bounce off world bounds
+        slime.setCollideWorldBounds(true);
+        slime.setBounce(1, 1);
+    
+        // Add to slimes group
+        this.slimes.add(slime);
+    
+        return slime;
+    }
+
+                
             }
 
             create() {
@@ -1053,6 +1237,7 @@
     </script>
 </body>
 </html>
+
 
 
 
