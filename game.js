@@ -1029,5 +1029,5 @@ class TypingGame extends Phaser.Scene {
     window.addEventListener('DOMContentLoaded', function() {
         new Phaser.Game(config);
     });
-})();
+
 
