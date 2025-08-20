@@ -36,8 +36,22 @@
             playerLevel: 1,
             playerDamage: 2,
             maxPlayerHealth: 10,
-            timerBonus: 0
+            lifestealChance: 0 // New lifesteal property
         };
+
+        // Function to reset all game progress
+        function resetGameState() {
+            gameState.currentWord = "";
+            gameState.lastWord = "";
+            gameState.typedCorrectly = 0;
+            gameState.currentScore = 0;
+            gameState.isCurrentWordIntermediate = false;
+            gameState.playerExperience = 0;
+            gameState.playerLevel = 1;
+            gameState.playerDamage = 2;
+            gameState.maxPlayerHealth = 10;
+            gameState.lifestealChance = 0;
+        }
 
         // Word pools
         const easyWords = [
@@ -64,6 +78,148 @@
                 "SUPERCILICIOUS", "ABERRATION", "ENIGMATIC", "IMPERTINENT", "INTRANSIGENT",
                 "NEFARIOUS", "SAGACIOUS", "TENACIOUS", "ZEALOUS", "INTRANSIGENT", "CONUNDRUM"
         ];
+
+        class StartScreen extends Phaser.Scene {
+            constructor() {
+                super({ key: "StartScreen" });
+            }
+
+            create() {
+                // Background
+                this.cameras.main.setBackgroundColor('#2d5016');
+
+                // Add some decorative trees
+                for (let i = 0; i < 6; i++) {
+                    const x = Phaser.Math.Between(50, 750);
+                    const y = Phaser.Math.Between(450, 550);
+                    this.createTreeSprite(x, y);
+                }
+
+                // Title
+                this.add.text(400, 70, "PIXEL TYPING QUEST", {
+                    fontSize: "32px",
+                    fill: "#00ff41",
+                    fontFamily: "Courier New",
+                    fontStyle: "bold",
+                    stroke: "#000000",
+                    strokeThickness: 2
+                }).setOrigin(0.5);
+
+                this.add.text(400, 100, "Type words to defeat enemies!", {
+                    fontSize: "16px",
+                    fill: "#ffffff",
+                    fontFamily: "Courier New"
+                }).setOrigin(0.5);
+
+                this.add.text(400, 120, "Level up and choose upgrades", {
+                    fontSize: "16px",
+                    fill: "#ffffff",
+                    fontFamily: "Courier New"
+                }).setOrigin(0.5);
+
+                this.add.text(400, 140, "Survive the boss fights!", {
+                    fontSize: "16px",
+                    fill: "#ffffff",
+                    fontFamily: "Courier New"
+                }).setOrigin(0.5);
+
+                // Experience bar display
+                this.add.text(400, 180, "EXP", {
+                    fontSize: "14px",
+                    fill: "#ffffff",
+                    fontFamily: "Courier New"
+                }).setOrigin(0.5);
+
+                const expBarBg = this.add.rectangle(400, 200, 200, 16, 0x2c3e50);
+                expBarBg.setStrokeStyle(2, 0x34495e);
+                const expBar = this.add.rectangle(350, 200, 80, 12, 0x9b59b6).setOrigin(0, 0.5);
+
+                this.add.text(400, 220, "8/10", {
+                    fontSize: "12px",
+                    fill: "#ffffff",
+                    fontFamily: "Courier New"
+                }).setOrigin(0.5);
+
+                this.add.text(400, 258, "LV: 3", {
+                    fontSize: "16px",
+                    fill: "#e74c3c",
+                    fontFamily: "Courier New",
+                    fontStyle: "bold"
+                }).setOrigin(0.5);
+
+                // Controls section
+                this.add.text(400, 320, "CONTROLS:", {
+                    fontSize: "20px",
+                    fill: "#f39c12",
+                    fontFamily: "Courier New",
+                    fontStyle: "bold"
+                }).setOrigin(0.5);
+
+                const controls = [
+                    "Type letters to attack",
+                    "ESC: Pause/Resume",
+                    "BACKSPACE: Delete letter",
+                    "1/2/3: Select upgrades"
+                ];
+
+                for (let i = 0; i < controls.length; i++) {
+                    this.add.text(400, 360 + (i * 25), controls[i], {
+                        fontSize: "14px",
+                        fill: "#bdc3c7",
+                        fontFamily: "Courier New"
+                    }).setOrigin(0.5);
+                }
+
+                // Start button
+                const startButton = this.add.rectangle(400, 520, 200, 50, 0x27ae60);
+                startButton.setStrokeStyle(3, 0x2ecc71);
+                
+                const startText = this.add.text(400, 520, "START GAME", {
+                    fontSize: "18px",
+                    fill: "#ffffff",
+                    fontFamily: "Courier New",
+                    fontStyle: "bold"
+                }).setOrigin(0.5);
+
+                // Button animation
+                this.tweens.add({
+                    targets: [startButton, startText],
+                    scaleX: 1.05,
+                    scaleY: 1.05,
+                    duration: 1000,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+
+                // Input handling
+                this.input.keyboard.once("keydown-SPACE", () => {
+                    resetGameState(); // Reset everything when starting new game
+                    this.scene.start("TypingGame");
+                });
+
+                this.input.keyboard.once("keydown-ENTER", () => {
+                    resetGameState(); // Reset everything when starting new game
+                    this.scene.start("TypingGame");
+                });
+
+                // Make button clickable
+                startButton.setInteractive();
+                startButton.on('pointerdown', () => {
+                    resetGameState(); // Reset everything when starting new game
+                    this.scene.start("TypingGame");
+                });
+            }
+
+            createTreeSprite(x, y) {
+                const treeGraphics = this.add.graphics();
+                treeGraphics.fillStyle(0x8b4513);
+                treeGraphics.fillRect(x-5, y-15, 10, 30);
+                treeGraphics.fillStyle(0x228b22);
+                treeGraphics.fillCircle(x, y-15, 15);
+                treeGraphics.setAlpha(0.6);
+            }
+        }
 
         class TypingGame extends Phaser.Scene {
             constructor() {
@@ -155,7 +311,7 @@
 
             create() {
                 // Initialize game variables
-                this.timeLimit = 5 + gameState.timerBonus;
+                this.timeLimit = 5;
                 this.timeLeft = this.timeLimit;
                 this.playerHealth = gameState.maxPlayerHealth;
                 this.enemyHealth = 10;
@@ -267,11 +423,18 @@
                     fontStyle: "bold"
                 }).setOrigin(0.5);
 
+                // Lifesteal indicator
+                this.lifestealText = this.add.text(150, 200, `Lifesteal: ${gameState.lifestealChance}%`, {
+                    fontSize: "12px",
+                    fill: "#ff69b4",
+                    fontFamily: "Courier New"
+                }).setOrigin(0.5);
+
                 // Word display
-                this.wordContainer = this.add.container(400, 200);
+                this.wordContainer = this.add.container(400, 230);
                 this.letterSprites = [];
 
-                this.typedText = this.add.text(400, 300, "", {
+                this.typedText = this.add.text(400, 330, "", {
                     fontSize: "24px",
                     fill: "#00ff41",
                     fontFamily: "Courier New"
@@ -366,6 +529,15 @@
             wordCompleted() {
                 this.enemyHealth -= gameState.playerDamage;
                 
+                // Lifesteal healing check
+                if (gameState.lifestealChance > 0 && this.playerHealth < gameState.maxPlayerHealth) {
+                    const healChance = Math.random() * 100;
+                    if (healChance < gameState.lifestealChance) {
+                        this.playerHealth = Math.min(this.playerHealth + 1, gameState.maxPlayerHealth);
+                        this.showLifestealHeal();
+                    }
+                }
+                
                 const points = gameState.isCurrentWordIntermediate ? 200 : 100;
                 const expGain = gameState.isCurrentWordIntermediate ? 20 : 10;
                 gameState.currentScore += points;
@@ -392,6 +564,33 @@
                     this.updateHealthBars();
                     this.nextWord();
                 }
+            }
+
+            showLifestealHeal() {
+                const healText = this.add.text(150, 460, "+1 HP", {
+                    fontSize: "16px",
+                    fill: "#ff69b4",
+                    fontFamily: "Courier New",
+                    fontStyle: "bold"
+                }).setOrigin(0.5);
+                
+                this.tweens.add({
+                    targets: healText,
+                    y: 400,
+                    alpha: 0,
+                    duration: 1000,
+                    ease: 'Power2',
+                    onComplete: () => healText.destroy()
+                });
+
+                // Healing effect on player
+                this.tweens.add({
+                    targets: this.player,
+                    tint: 0xff69b4,
+                    duration: 200,
+                    yoyo: true,
+                    onComplete: () => this.player.clearTint()
+                });
             }
 
             wrongLetter() {
@@ -450,7 +649,7 @@
                 const upgrades = [
                     { text: "+2 damage", key: "1", type: "damage" },
                     { text: "+2 health", key: "2", type: "health" },
-                    { text: "+2 second timer", key: "3", type: "timer" }
+                    { text: "+10% lifesteal", key: "3", type: "lifesteal" }
                 ];
                 
                 this.upgradeBoxes = [];
@@ -518,10 +717,10 @@
                         this.playerHealth += 2;
                         this.showUpgradeAnimation("health");
                         break;
-                    case "timer":
-                        gameState.timerBonus += 2;
-                        this.timeLimit = (this.isBossFight ? 60 : 5) + gameState.timerBonus;
-                        this.showUpgradeAnimation("timer");
+                    case "lifesteal":
+                        gameState.lifestealChance += 10;
+                        this.lifestealText.setText(`Lifesteal: ${gameState.lifestealChance}%`);
+                        this.showUpgradeAnimation("lifesteal");
                         break;
                 }
                 
@@ -543,13 +742,13 @@
                 
                 this.cleanupUpgradeUI();
                 
-                // FIX: Reset timer and continue the game after upgrade selection
+                // Reset timer and continue the game after upgrade selection
                 this.timeLeft = this.timeLimit;
                 this.nextWord();
             }
 
             autoSelectUpgrade() {
-                const upgrades = ["damage", "health", "timer"];
+                const upgrades = ["damage", "health", "lifesteal"];
                 const randomUpgrade = Phaser.Utils.Array.GetRandom(upgrades);
                 this.selectUpgrade(randomUpgrade);
             }
@@ -582,13 +781,25 @@
                             yoyo: true
                         });
                         break;
-                    case "timer":
-                        this.tweens.add({
-                            targets: [this.timerBg, this.timerBar],
-                            scaleX: 1.2,
-                            duration: 300,
-                            yoyo: true
-                        });
+                    case "lifesteal":
+                        // Pink sparkle effect
+                        for (let i = 0; i < 15; i++) {
+                            const sparkle = this.add.rectangle(
+                                150 + Math.random() * 30 - 15,
+                                500 + Math.random() * 30 - 15,
+                                2, 2,
+                                0xff69b4
+                            );
+                            
+                            this.tweens.add({
+                                targets: sparkle,
+                                alpha: 0,
+                                scaleX: 2,
+                                scaleY: 2,
+                                duration: 800 + Math.random() * 400,
+                                onComplete: () => sparkle.destroy()
+                            });
+                        }
                         break;
                 }
             }
@@ -787,7 +998,7 @@
                 
                 this.progressBarEnemies = 0;
                 this.isBossFight = false;
-                this.timeLimit = 5 + gameState.timerBonus;
+                this.timeLimit = 5;
                 
                 for (let i = 0; i < this.maxProgressEnemies; i++) {
                     if (this.progressSkulls[i]) {
@@ -1025,10 +1236,7 @@
                 });
 
                 this.input.keyboard.once("keydown-SPACE", () => {
-                    // Reset game state
-                    gameState.typedCorrectly = 0;
-                    gameState.currentScore = 0;
-                    this.scene.start("TypingGame");
+                    this.scene.start("StartScreen");
                 });
             }
         }
@@ -1038,7 +1246,7 @@
             type: Phaser.AUTO,
             width: 800,
             height: 600,
-            scene: [TypingGame, GameOver],
+            scene: [StartScreen, TypingGame, GameOver],
             backgroundColor: "#2d5016",
             physics: {
                 default: 'arcade',
